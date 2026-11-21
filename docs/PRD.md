@@ -95,14 +95,16 @@ Nour, an illustrative first-time driver, creates a public account and signs in o
 | Behavior | Positive label |
 |---|---|
 | Drowsiness | Visible cues such as sustained eye closure and unusually long or slow blinks. Evaluate repeated yawning as a supporting cue. An ordinary blink or isolated yawn is a negative example for a drowsiness alert. |
-| Distraction | Sustained off-task gaze or head direction. |
-| Phone use | Observable active use. Mere phone presence is outside this label. |
-| Eating | Observable eating behavior. |
-| Drinking | Observable drinking behavior. |
+| Distraction | Sustained off-task gaze or head direction. Include brief mirror checks as negative examples. |
+| Phone use | Observable interaction with a phone, such as handling it to text or taking a call. An unused phone in view and an empty hand near the ear are negative examples. |
+| Eating | Observable food consumption, supported by hand-to-mouth movement in the context of food or an eating utensil. Include talking and unrelated hand-to-face gestures as negative examples. |
+| Drinking | Observable sipping or drinking, supported by hand-to-mouth movement with a cup, bottle, or another visible drink container. Include holding a cup without sipping as a negative example. |
+
+V1 uses pretrained face and hand tracking and object detection with RAFIQ's calibrated behavior rules. The camera provides evidence of each action over time. The [technical design](TRD.md#21-pretrained-browser-vision) records the selected components.
 
 **Candidate for a new behavior.** Evaluate reaching for an object away from the driving position, such as reaching toward a passenger seat or footwell. Enable it as a standalone class once it passes §8.3.
 
-- **AC-05.** A stationary session shows the live feed and distinguishes concurrent behaviors, no qualifying behavior, and unavailable observation. Test each enabled class with positive, negative, overlapping, and unusable examples. Include ordinary blinks, talking versus yawning, an unused phone, and routine driving movements as appropriate to the class. Add a new class through the benchmark and release checks in §8.3.
+- **AC-05.** A stationary session shows the live feed and distinguishes concurrent behaviors, usable observation without a qualifying behavior, and unavailable observation. Test positive, negative, overlapping, and unusable examples for each class. When only a class's cues are obscured, mark that class unavailable and continue evaluating observable classes. Add a new class through the benchmark and release checks in §8.3.
 
 **FR-06. Handle unreliable observation.** RAFIQ shows when low confidence, poor light, obstruction, or camera loss makes monitoring unreliable and pauses the session. It identifies affected intervals in the session record.
 
@@ -267,6 +269,7 @@ The defaults below close the remaining product decisions under Ali Sameh’s ins
 - Record the baseline labels and proposed additions in the versioned **RAFIQ Controlled Annotation Guide**. Mark each sampled frame for each evaluated behavior as present, absent, or unusable. Mark a behavior unusable if its cue cannot be assessed. Mark all evaluated behaviors unusable when the feed is unavailable. Resolve ambiguous cases with a second reviewer before freezing labels.
 - Use a versioned, consented stationary or simulator dataset collected for RAFIQ. Split by driver before tuning, targeting 60% development, 20% calibration, and 20% held-out. Require at least five held-out drivers, 20 independently staged positive episodes per behavior, and five held-out monitored hours. Keep all samples from any one driver in one split. Routine private sessions stay out of the benchmark.
 - Match predictions to frame labels at the same sampled timestamps at 10 Hz. Exclude unusable class frames from that class’s confusion counts and report their share. Calculate coverage from elapsed session time excluding deliberate user pauses and including observation-loss pauses. Overall coverage reflects usable feed time. Per-behavior coverage reflects observable cues for that class. Count a combined warning once as false when none of its named classes matches a qualifying labeled episode. Measure visible warning delay from the point the labeled cue meets its configured dwell.
+- Stage the FR-05 examples while stationary or in a simulator, including talking versus yawning, eating versus drinking, overlapping behaviors, occluded eyes or hands, and a lost camera feed. Verify that loss of a required cue produces unavailable observation for the affected class and that whole-feed loss pauses monitoring. Keep any class that fails its acceptance targets gated. A release with fewer than the five MVP behaviors requires Ali Sameh’s approval. Training or fine-tuning is a separate decision.
 - The table specifies **controlled-test starting values**. The stronger-warning threshold is total persistence from observation onset. Cooldown is the minimum interval before a repeat warning after acknowledgment. A gap within tolerance keeps the dwell progress without adding time. A longer gap clears the dwell progress, and the incident closes after sustained observed recovery. Camera loss follows FR-06. Select the lowest calibrated score threshold per class that meets both precision and recall targets on calibration data. If no threshold passes both, revise before held-out scoring.
 
 | Behavior | Initial dwell | Stronger warning at | Short gap | Sustained recovery | Cooldown | Precision target | Recall target |

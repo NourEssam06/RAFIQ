@@ -306,6 +306,10 @@ Two capture widths were observed (a wide desktop landing and a narrow mobile-pro
 6. Accents stay scarce and color-coded to plugins; the core surface stays monochrome dark.
 7. When in doubt about emphasis: scale the headline up before reaching for an accent color.
 
+## RAFIQ Monitoring States
+
+Use readable text to distinguish a vision setup failure, a partly usable view, and a paused session. In a combined warning, keep each behavior, cue, and duration legible as its own line. Use labels and icons alongside color for critical status. [Experience state patterns](EXPERIENCE.md#state-patterns) · [Warning copy](EXPERIENCE.md#voice-and-tone)
+
 ## Known Gaps
 
 - **Mori is a licensed typeface** and is not shipped freely; an open-source substitute (Space Grotesk / General Sans) is documented in Typography. Exact licensing terms are out of scope.
