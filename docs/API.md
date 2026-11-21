@@ -83,6 +83,99 @@ The browser clears decrypted views and active keys across tabs on sign-out, acco
 
 ## 7. Detailed Endpoint / Operation Specifications
 
+<details>
+<summary>HTTP operation index</summary>
+
+| Module | Method and path | Operation ID |
+| --- | --- | --- |
+| M01 | `GET /api/v1/account` | `getAccount` |
+| M01 | `PUT /api/v1/account/controlled-use` | `acceptControlledUse` |
+| M01 | `PATCH /api/v1/account` | `updateAccount` |
+| M01 | `GET /api/v1/account/preferences` | `getPreferences` |
+| M01 | `PUT /api/v1/account/preferences` | `putPreferences` |
+| M01 | `DELETE /api/v1/account` | `deleteAccount` |
+| M01 | `POST /webhooks/clerk` | `receiveClerkEvent` |
+| M03 | `PUT /api/v1/devices/{deviceId}/key` | `registerDeviceKey` |
+| M03 | `POST /api/v1/devices/{deviceId}/key/unwrap` | `unwrapDeviceKey` |
+| M03 | `PUT /api/v1/sessions/{sessionId}` | `startSession` |
+| M03 | `POST /api/v1/sessions/{sessionId}/sync` | `syncSession` |
+| M03 | `PUT /api/v1/sessions/{sessionId}/finalization` | `finalizeSession` |
+| M03 | `GET /api/v1/sessions` | `listSessions` |
+| M03 | `GET /api/v1/sessions/{sessionId}` | `getSession` |
+| M03 | `GET /api/v1/sessions/{sessionId}/timeline` | `getTimeline` |
+| M03 | `GET /api/v1/sessions/{sessionId}/incidents/{incidentId}` | `getIncident` |
+| M03 | `DELETE /api/v1/sessions/{sessionId}` | `deleteSession` |
+| M04 | `GET /api/v1/recording-consent` | `getRecordingConsent` |
+| M04 | `PUT /api/v1/recording-consent` | `putRecordingConsent` |
+| M04 | `PUT /api/v1/clips/{clipId}` | `registerClip` |
+| M04 | `PUT /api/v1/clips/{clipId}/content` | `uploadClip` |
+| M04 | `GET /api/v1/clips` | `listClips` |
+| M04 | `GET /api/v1/clips/{clipId}` | `getClip` |
+| M04 | `GET /api/v1/clips/{clipId}/content` | `playClip` |
+| M04 | `DELETE /api/v1/clips/{clipId}` | `deleteClip` |
+| M05 | `GET /api/v1/emergency/settings` | `getEmergencySettings` |
+| M05 | `PUT /api/v1/emergency/contacts/{contactId}` | `putEmergencyContact` |
+| M05 | `DELETE /api/v1/emergency/contacts/{contactId}` | `deleteEmergencyContact` |
+| M05 | `PUT /api/v1/emergency/contact-order` | `putEmergencyContactOrder` |
+| M05 | `PUT /api/v1/emergency/location-consent` | `putLocationConsent` |
+| M05 | `POST /api/v1/sessions/{sessionId}/emergency/confirmation` | `prepareEmergencyAttempt` |
+| M05 | `POST /api/v1/sessions/{sessionId}/emergency/attempts` | `confirmEmergencyAttempt` |
+| M05 | `PUT /api/v1/sessions/{sessionId}/emergency/sequences/{sequenceId}/invalidation` | `invalidateEmergencySequence` |
+| M05 | `GET /api/v1/sessions/{sessionId}/emergency/sequences/{sequenceId}` | `getEmergencySequence` |
+| M05 | `POST /webhooks/resend` | `receiveResendEvent` |
+| M05 | `GET /webhooks/whatsapp` | `verifyWhatsAppWebhook` |
+| M05 | `POST /webhooks/whatsapp` | `receiveWhatsAppEvent` |
+| M06 | `GET /api/v1/dashboard` | `getDashboard` |
+| M06 | `GET /api/v1/sessions/{sessionId}/analytics` | `getSessionAnalytics` |
+| M06 | `POST /api/v1/analysis/personal-overview` | `resolvePersonalOverview` |
+| M06 | `GET /api/v1/analysis/what-if/sources` | `listReplaySources` |
+| M06 | `POST /api/v1/analysis/what-if/runs` | `startSimulation` |
+| M06 | `GET /api/v1/analysis/what-if/runs` | `listSimulations` |
+| M06 | `GET /api/v1/analysis/what-if/runs/{jobId}` | `getSimulation` |
+| M06 | `GET /api/v1/analysis/studio/datasets` | `listStudyDatasets` |
+| M06 | `POST /api/v1/analysis/studio/runs` | `startStudy` |
+| M06 | `GET /api/v1/analysis/studio/runs` | `listStudies` |
+| M06 | `GET /api/v1/analysis/studio/runs/{jobId}` | `getStudy` |
+| M06 | `GET /api/v1/analysis/studio/runs/{jobId}/export` | `downloadStudyAggregate` |
+| M06 | `GET /api/v1/analysis/benchmark` | `getBenchmark` |
+| M07 | `GET /.well-known/oauth-protected-resource/mcp` | `getMcpResourceMetadata` |
+| M07 | `POST /mcp` | `handleMcp` |
+| M07 | `GET /api/v1/connections/mcp` | `getMcpConnections` |
+| M07 | `DELETE /api/v1/connections/mcp/grants/{grantId}` | `revokeMcpGrant` |
+| M07 | `GET /api/v1/reports` | `listReports` |
+| M07 | `GET /api/v1/report-jobs/{jobId}` | `getReportStatus` |
+| M07 | `GET /api/v1/reports/{reportId}` | `getReport` |
+| M07 | `POST /api/v1/reports/{reportId}/exports` | `createReportExport` |
+| M07 | `GET /api/v1/reports/{reportId}/exports/{exportId}` | `getReportExport` |
+| M07 | `GET /api/v1/reports/{reportId}/exports/{exportId}/downloads/{downloadId}` | `downloadReportExport` |
+| M08 | `GET /api/v1/connections/chat` | `getChatConnections` |
+| M08 | `POST /api/v1/connections/chat/{provider}/link` | `startChatLink` |
+| M08 | `POST /api/v1/connections/chat/{provider}/link/completion` | `completeChatLink` |
+| M08 | `PUT /api/v1/connections/chat/{provider}/consent` | `putChatConsent` |
+| M08 | `POST /api/v1/connections/chat/{provider}/messages` | `sendChatMessage` |
+| M08 | `DELETE /api/v1/connections/chat/{provider}/conversations/{conversationId}` | `closeChat` |
+| M08 | `DELETE /api/v1/connections/chat/{provider}` | `disconnectChat` |
+| M09 | `GET /api/v1/admin/entry` | `getAdminEntry` |
+| M09 | `POST /api/v1/admin/invitations` | `createAdminInvite` |
+| M09 | `POST /api/v1/admin/invitations/redemption` | `redeemAdminInvite` |
+| M09 | `POST /api/v1/admin/mfa/enrollment` | `startAdminEnrollment` |
+| M09 | `POST /api/v1/admin/mfa/enrollment/verification` | `verifyAdminEnrollment` |
+| M09 | `POST /api/v1/admin/mfa/verification` | `verifyAdminTotp` |
+| M09 | `POST /api/v1/admin/mfa/recovery` | `recoverAdminMfa` |
+| M09 | `GET /api/v1/admin/staff` | `listStaff` |
+| M09 | `PUT /api/v1/admin/staff/{adminId}/access` | `putStaffAccess` |
+| M09 | `POST /api/v1/admin/staff/{adminId}/mfa/reset` | `resetStaffMfa` |
+| M09 | `GET /api/v1/admin/health` | `getServiceHealth` |
+| M09 | `GET /api/v1/admin/release-readiness` | `getReleaseReadiness` |
+| M09 | `POST /api/v1/admin/adoption` | `resolveAdoption` |
+| M09 | `POST /api/v1/admin/support/accounts/lookup` | `lookupSupportedAccount` |
+| M09 | `POST /api/v1/admin/support/accounts/{accountId}/messages` | `sendSupportMessage` |
+| M09 | `PUT /api/v1/admin/support/accounts/{accountId}/status` | `changeAccountLifecycle` |
+| M09 | `GET /api/v1/admin/audit` | `listAdminAudit` |
+
+</details>
+
+
 The OpenAPI block below is the HTTP wire contract. Its operation descriptions, reusable parameters, response examples, and schemas apply together with §§8–14. Each operation with no request-body declaration accepts no product body. Each operation with no parameter declaration has no operation-specific parameters. The global security requirement is a verified driver bearer session unless overridden. The MCP transport uses the linked MCP binding and tool contracts in §9.
 
 ### Binary transfer example
@@ -514,7 +607,7 @@ paths:
     put:
       operationId: "finalizeSession"
       tags: ["M03"]
-      description: "Submit after flushing eligible required records. Normal end records the stationary driver end marker. Interruption recovery derives the end from the last durable observation after eligible recovery. Transition to ended only after required sync is resolved; optional clips never gate results. Replay identical finalization safely."
+      description: "Submit after flushing eligible required records and identify those items in the finalization manifest. The server verifies owned committed receipts for the supplied IDs and resolves observation and event references before marking the session ended. Normal end records the stationary driver end marker. Interruption recovery uses the last durable observation. Replay identical finalization safely."
       x-authority: "Verified eligible driver · current owner and action"
       parameters: [{"$ref":"#/components/parameters/PathSession"}]
       requestBody:
@@ -522,7 +615,7 @@ paths:
         content:
           "application/json":
             schema: {"$ref":"#/components/schemas/Finalization"}
-            example: {"kind":"normal","endedAt":"2026-11-10T09:20:00Z","elapsedMs":1200000}
+            example: {"kind":"normal","endedAt":"2026-11-10T09:20:00Z","elapsedMs":1200000,"requiredItemIds":["8e3a6200-4d85-4abd-a790-000000000019"]}
       responses:
         "200":
           description: "Successful response."
@@ -806,7 +899,7 @@ paths:
         content:
           "video/webm":
             schema: {}
-            description: "Raw bytes. See binary transfer example in section 7."
+            x-binary-note: "Raw bytes. See the binary transfer example in section 7."
       responses:
         "200":
           description: "Successful response."
@@ -1726,10 +1819,9 @@ paths:
           content:
             "application/json":
               schema: {"$ref":"#/components/schemas/McpReply"}
-              example: {"jsonrpc":"2.0","id":7,"result":{"resultType":"complete","content":[{"type":"text","text":"{\"jobId\":\"job_example_3d91\",\"state\":\"queued\"}"}],"structuredContent":{"jobId":"job_example_3d91","state":"queued"}}}
+              example: {"jsonrpc":"2.0","id":7,"result":{"resultType":"complete","content":[{"type":"text","text":"{\"jobId\":\"job_example_3d91\",\"state\":\"queued\"}"}],"structuredContent":{"jobId":"job_example_3d91","state":"queued"},"_meta":{"io.modelcontextprotocol/serverInfo":{"name":"rafiq","version":"1.0.0-proposed"}}}}
             "text/event-stream":
-              schema: {"type":"string"}
-              description: "Request-scoped SSE per MCP binding."
+              schema: {"type":"string","description":"Request-scoped SSE per MCP binding."}
         "202":
           description: "Accepted notification under the negotiated binding, if supported. Empty body."
           headers:
@@ -3440,7 +3532,26 @@ components:
       required: ["items","nextCursor"]
       properties: {"items":{"type":"array","items":{"$ref":"#/components/schemas/Session"}},"nextCursor":{"anyOf":[{"type":"string","minLength":1,"maxLength":512},{"type":"null"}]}}
     Finalization:
-      oneOf: [{"type":"object","additionalProperties":false,"required":["kind","endedAt","elapsedMs"],"properties":{"kind":{"const":"normal"},"endedAt":{"type":"string","format":"date-time"},"elapsedMs":{"type":"integer","minimum":0}}},{"type":"object","additionalProperties":false,"required":["kind"],"properties":{"kind":{"const":"interrupted"}}}]
+      oneOf:
+        - type: "object"
+          additionalProperties: false
+          required: ["kind","endedAt","elapsedMs","requiredItemIds"]
+          properties:
+            kind: {"const":"normal"}
+            endedAt: {"type":"string","format":"date-time"}
+            elapsedMs: {"type":"integer","minimum":0}
+            requiredItemIds: {"$ref":"#/components/schemas/FinalizationManifest"}
+        - type: "object"
+          additionalProperties: false
+          required: ["kind","requiredItemIds"]
+          properties:
+            kind: {"const":"interrupted"}
+            requiredItemIds: {"$ref":"#/components/schemas/FinalizationManifest"}
+    FinalizationManifest:
+      type: "array"
+      uniqueItems: true
+      items: {"type":"string","format":"uuid"}
+      description: "Stable IDs for the eligible required session records known to the client. The qualified sync resource limit also bounds the manifest."
     Bounds:
       type: "object"
       additionalProperties: false
@@ -3470,7 +3581,7 @@ components:
       type: "object"
       additionalProperties: false
       required: ["code","unit","value"]
-      properties: {"code":{"$ref":"#/components/schemas/Behavior"},"unit":{"type":"string","minLength":1,"maxLength":50},"value":{"type":"number"}}
+      properties: {"code":{"type":"string","minLength":1,"maxLength":64,"description":"Stable cue or measurement code in the qualified series or policy catalog."},"unit":{"type":"string","minLength":1,"maxLength":50},"value":{"type":"number"}}
     MeasurementSample:
       type: "object"
       additionalProperties: false
@@ -5041,9 +5152,9 @@ components:
 | --- | --- |
 | Ownership and IDs | Client-generated UUIDs identify offline and replay-safe writes. A known ID confers no access. Validate every parent reference using the current owner. MCP job, provider, cursor, challenge, download and display-version values are opaque. |
 | Time and versions | Check `startMs < endMs`, ordered monotonic samples, nonnegative duration, event bounds within the session, and compatible catalog, model, policy and measurement versions. Record wall-clock capture time for retention. Accept known supported versions during the version’s qualified retry horizon. |
-| Observation and policy | A usable feed can have no detection and can leave cues for specific classes unobservable. Deliberate pause excludes exposure, and observation-loss pause retains exposure without usable feed. Open and closed intervals retain their cause. Preserve individual detections, overlapping incident membership, and one combined warning per qualified incident and policy. Acknowledgment records an action without editing observations or canceling Emergency Mode. |
+| Observation and policy | A usable feed can have no detection and can leave cues for specific classes unobservable. Deliberate pause excludes exposure, and observation-loss pause retains exposure without usable feed. Persist closed intervals with their cause. Preserve individual detections, overlapping incident membership, and one combined warning per qualified incident and policy. Acknowledgment records an action without editing observations or canceling Emergency Mode. |
 | Sync batch and receipt | Store each accepted item and its receipt in the same transaction. Compare canonical validated content for replay. Identical eligible replay returns `duplicate` and changed content under the same ID returns `conflict`. A missing dependency that can still arrive is `retryable`. For an identifiable bad item, return `invalid` and a safe reason and process remaining items. Reject an unidentifiable item or invalid envelope before processing the batch. Keep pending items through lost acknowledgments and transient failures. Stop automatic retry of invalid, conflicting, expired, deleted, or permanently ineligible items and surface a recoverable status where applicable. |
-| End and recovery | Stop monitoring locally before finalization. Upload eligible required records first and then submit the end intent. Interrupted recovery uses the latest observation durably recorded after flushing those records. An optional clip is independent. Publish the summary only when required data and R results are ready. |
+| End and recovery | Stop monitoring locally before finalization. Upload eligible required records first, then submit the end intent with their stable IDs. Verify same-session durable receipts, observation coverage of the recorded window, and reference completeness before committing finalization. Respond with `409 sync_incomplete` while required writes are missing. Interrupted recovery uses the latest observation durably recorded after flushing those records. Optional clips remain independent. Publish the summary only when required data and R results are ready. |
 | Recording and clip states | Consent version and matching category are checked before local capture and at hosted admission and publication. Request camera only. Default to 3 seconds before and after, independently configurable from 0–5 seconds. Keep the first bounded segment up to 30 seconds and 20 MB, with truncation evidence. Stop local capture immediately on consent loss. The queue holds at most 100 MB or 20 clips. Full or failed recording produces an unavailable clip state without stopping monitoring. |
 | Metrics and availability | `available` with numeric zero means a measured zero. Non-available metrics carry a reason and null value. Suppressed metrics carry null value, denominator, and sample size, and related results must pass complementary disclosure checks. Return data revisions, method, units, applicable denominators, and sample sizes. |
 | Personal analytics | R applies TRD §5.1 consistently across detail, overview and comparison. Pool incident and warning rates by total monitored hours, union overlapping usable behavior duration, and compare periods only at ≥15 monitored minutes, ≥90% coverage, ≥1 eligible completed session per period, and verified comparable versions. Group whole sessions by start date in the displayed time zone, daily through 30 calendar days and by local Monday-starting week above that. Daily and weekly points carry coverage and exposure. Supply individual durations through 30 detections, then use half-open bins at 0, 2, 5, 10 and 30 seconds with an open-ended last bin. Elapsed-monitoring bands use 0, 5, 15, 30 and 60 minutes with an open-ended last band. An incident contributes to the band containing its start. Keep available figures and withholding reasons, including an absolute change when the prior value is zero. |
@@ -5069,7 +5180,7 @@ The Resend and WhatsApp adapters verify raw request signatures before extracting
 
 ### Durable jobs, report rendering and R
 
-FastAPI commits a durable job with the immutable input revision in the transaction that accepts the operation. PostgreSQL hands the worker an exclusive lease with a fencing generation. The Python worker prepares eligible inputs and student study or benchmark inputs from the approved datasets, invokes pinned Rscript with one versioned `RRequest` JSON object, reads one `RResponse` object, and validates the method, revision, authorized scope and result schema. Keep participant-level input and application-only data inside the worker boundary. R emits checked statistics. Python owns eligibility, job state, template selection and artifact publication. Treat nonzero exit, timeout, malformed output and version mismatch as a bounded failure. A reclaimed run can recompute under a new lease. Commit at most one logical result under the current generation, with final eligibility and authoring-grant checks, and leave uncommitted artifacts private for cleanup.
+FastAPI commits a durable job with the immutable input revision in the transaction that accepts the operation. PostgreSQL hands the worker an exclusive lease with a fencing generation. The Python worker prepares eligible session inputs and controlled study or benchmark inputs from approved datasets, invokes pinned Rscript with one versioned `RRequest` JSON object, reads one `RResponse` object, and validates the method, revision, authorized scope and result schema. Keep participant-level input and application-only data inside the worker boundary. R emits checked statistics. Python owns eligibility, job state, template selection and artifact publication. Treat nonzero exit, timeout, malformed output and version mismatch as a bounded failure. A reclaimed run can recompute under a new lease. Commit at most one logical result under the current generation, with final eligibility and authoring-grant checks, and leave uncommitted artifacts private for cleanup.
 
 Publish pending, ready, unavailable, withdrawn or failed status only to the authorized caller. Job acceptance and progress reads use their documented operation and scope. Poll the server-provided path using its documented method and filters. Analytics resolution returns to the same read or resolve operation, and report exports use their export status route. Browser requests end after status or result and have no persistent subscription. Job recovery uses the same logical inputs; source expiry, deletion or authorization updates stop release even if calculation completed successfully.
 
@@ -5077,7 +5188,7 @@ Publish pending, ready, unavailable, withdrawn or failed status only to the auth
 
 The proposed wire profile is the stateless `2026-07-28` revision, subject to deployed reference-client qualification. Implement the revision’s transport and authentication rules, including protected resource discovery, S256 PKCE, client and audience binding, `WWW-Authenticate`, and origin validation. Return `405` for GET and DELETE at the MCP endpoint under this profile. Each JSON-RPC request uses its own POST with `Accept: application/json, text/event-stream`. Mirror the protocol version and method headers and the tool name for `tools/call`. RAFIQ uses JSON responses and accepts that Streamable HTTP clients can read request-scoped SSE under the protocol. Keep an authenticated durable report job independent of the request connection. The client checks its status with a fresh authorized call and retries a lost start or submission using its original request identity. Limit tool discovery and execution to approved capabilities and current scopes. [MCP Streamable HTTP](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http) · [MCP authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization) · [Clerk CIMD](https://clerk.com/docs/guides/configure/auth-strategies/oauth/client-id-metadata-documents)
 
-Each MCP tool’s input and successful structured output is a JSON Schema entry in the bundle below. Build the corresponding published input and output schema with the reachable local definitions, and validate against it before dispatch and before releasing output. Tool inputs use an object root. Use JSON-RPC errors for invalid envelopes and unsupported methods. For execution failures, use the MCP tool error result with `isError: true` and a safe `McpToolError` object serialized in a text content block. A revision-required draft returns the typed validation outcome. Use protocol authorization errors and challenges for invalid tokens and insufficient scopes. Error details may identify invalid fields and safe code values.
+Advertise the tools capability from `server/discover`. Return current permitted tool definitions from `tools/list` and apply the tool-level authorization check again on `tools/call`. The protocol layer supplies result metadata, including `io.modelcontextprotocol/serverInfo`. Each tool’s input and successful structured output is a JSON Schema entry in the bundle below. Publish those schemas with their reachable local definitions, and validate input before dispatch and output before release. Tool inputs use an object root. Use JSON-RPC errors for invalid envelopes and unsupported methods. For execution failures, use the MCP tool error result with `isError: true` and a safe `McpToolError` object serialized in a text content block. A revision-required draft returns the typed validation outcome. Use protocol authorization errors and challenges for invalid tokens and insufficient scopes. Error details may identify invalid fields and safe code values.
 
 
 | Tool | Scope | Input → output | Behavior |
@@ -5108,7 +5219,7 @@ The JSON Schema bundle includes the MCP application payloads, local monitoring e
     "Severity": {"type":"string","pattern":"^[a-z][a-zA-Z0-9]{0,39}$","description":"Approved severity code for the referenced policy version."},
     "Versions": {"type":"object","additionalProperties":false,"required":["catalog","model","policy"],"properties":{"catalog":{"type":"string","minLength":1,"maxLength":64},"model":{"type":"string","minLength":1,"maxLength":64},"policy":{"type":"string","minLength":1,"maxLength":64}}},
     "ObservationInterval": {"type":"object","additionalProperties":false,"required":["startMs","endMs","state","reason","observableBehaviors"],"properties":{"startMs":{"type":"integer","minimum":0},"endMs":{"type":"integer","minimum":0},"state":{"type":"string","enum":["usable","observationLoss","deliberatePause"]},"reason":{"anyOf":[{"type":"string","enum":["cameraLost","poorLight","obstructed","lowConfidence","otherUnusable"]},{"type":"null"}]},"observableBehaviors":{"type":"array","items":{"$ref":"#/$defs/Behavior"},"maxItems":30}}},
-    "Measurement": {"type":"object","additionalProperties":false,"required":["code","unit","value"],"properties":{"code":{"$ref":"#/$defs/Behavior"},"unit":{"type":"string","minLength":1,"maxLength":50},"value":{"type":"number"}}},
+    "Measurement": {"type":"object","additionalProperties":false,"required":["code","unit","value"],"properties":{"code":{"type":"string","minLength":1,"maxLength":64,"description":"Stable cue or measurement code in the qualified series or policy catalog."},"unit":{"type":"string","minLength":1,"maxLength":50},"value":{"type":"number"}}},
     "MeasurementSample": {"type":"object","additionalProperties":false,"required":["elapsedMs","observableBehaviors","values"],"properties":{"elapsedMs":{"type":"integer","minimum":0},"observableBehaviors":{"type":"array","items":{"$ref":"#/$defs/Behavior"},"maxItems":30},"values":{"type":"array","items":{"$ref":"#/$defs/Measurement"},"maxItems":50}}},
     "MeasurementSeries": {"type":"object","additionalProperties":false,"required":["seriesVersion","samples"],"properties":{"seriesVersion":{"type":"string","minLength":1,"maxLength":64},"samples":{"type":"array","items":{"$ref":"#/$defs/MeasurementSample"},"minItems":1}}},
     "Detection": {"type":"object","additionalProperties":false,"required":["detectionId","behavior","startMs","endMs","confidence","measurements"],"properties":{"detectionId":{"type":"string","format":"uuid"},"behavior":{"$ref":"#/$defs/Behavior"},"startMs":{"type":"integer","minimum":0},"endMs":{"type":"integer","minimum":0},"confidence":{"type":"number","minimum":0,"maximum":1},"measurements":{"type":"array","items":{"$ref":"#/$defs/Measurement"},"maxItems":50}}},
@@ -5169,7 +5280,7 @@ The JSON Schema bundle includes the MCP application payloads, local monitoring e
     "AdoptionPoint": {"type":"object","additionalProperties":false,"required":["from","through","activeDrivers","completedSessions"],"properties":{"from":{"type":"string","format":"date"},"through":{"type":"string","format":"date"},"activeDrivers":{"$ref":"#/$defs/Metric"},"completedSessions":{"$ref":"#/$defs/Metric"}}},
     "Adoption": {"type":"object","additionalProperties":false,"required":["timeZone","from","through","publicationRevision","coverageThrough","cohortComplete","cards","funnel","trend"],"properties":{"timeZone":{"type":"string","minLength":1,"maxLength":80},"from":{"anyOf":[{"type":"string","format":"date"},{"type":"null"}]},"through":{"anyOf":[{"type":"string","format":"date"},{"type":"null"}]},"publicationRevision":{"anyOf":[{"type":"string","minLength":1,"maxLength":64},{"type":"null"}]},"coverageThrough":{"anyOf":[{"type":"string","format":"date-time"},{"type":"null"}]},"cohortComplete":{"type":"boolean"},"cards":{"$ref":"#/$defs/AdoptionCards"},"funnel":{"$ref":"#/$defs/AdoptionFunnel"},"trend":{"type":"array","items":{"$ref":"#/$defs/AdoptionPoint"}}}},
     "McpPageInput": {"type":"object","additionalProperties":false,"required":[],"properties":{"cursor":{"type":"string","minLength":1,"maxLength":512},"limit":{"type":"integer","minimum":1,"maximum":100}}},
-    "McpSummary": {"type":"object","additionalProperties":false,"required":["sessionId","startedAt","endedAt","durationMs","coverage","behaviorCounts","incidentCount"],"properties":{"sessionId":{"type":"string","format":"uuid"},"startedAt":{"type":"string","format":"date-time"},"endedAt":{"type":"string","format":"date-time"},"durationMs":{"type":"integer","minimum":0},"coverage":{"type":"number","minimum":0,"maximum":1},"behaviorCounts":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["behavior","count"],"properties":{"behavior":{"$ref":"#/$defs/Behavior"},"count":{"type":"integer","minimum":0}}}},"incidentCount":{"type":"integer","minimum":0}}},
+    "McpSummary": {"type":"object","additionalProperties":false,"required":["sessionId","startedAt","endedAt","durationMs","coverage","behaviorCounts","incidentCount"],"properties":{"sessionId":{"type":"string","format":"uuid"},"startedAt":{"type":"string","format":"date-time"},"endedAt":{"type":"string","format":"date-time"},"durationMs":{"type":"integer","minimum":0},"coverage":{"anyOf":[{"type":"number","minimum":0,"maximum":1},{"type":"null"}]},"behaviorCounts":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["behavior","count"],"properties":{"behavior":{"$ref":"#/$defs/Behavior"},"count":{"type":"integer","minimum":0}}}},"incidentCount":{"type":"integer","minimum":0}}},
     "McpSummaryPage": {"type":"object","additionalProperties":false,"required":["items","nextCursor"],"properties":{"items":{"type":"array","items":{"$ref":"#/$defs/McpSummary"}},"nextCursor":{"anyOf":[{"type":"string","minLength":1,"maxLength":512},{"type":"null"}]}}},
     "McpSessionInput": {"type":"object","additionalProperties":false,"required":["sessionId"],"properties":{"sessionId":{"type":"string","format":"uuid"}}},
     "McpEventInput": {"type":"object","additionalProperties":false,"required":["sessionId"],"properties":{"sessionId":{"type":"string","format":"uuid"},"cursor":{"type":"string","minLength":1,"maxLength":512},"limit":{"type":"integer","minimum":1,"maximum":100}}},
@@ -5259,3 +5370,122 @@ The JSON Schema bundle includes the MCP application payloads, local monitoring e
 </details>
 
 
+
+## 10. Pagination, Filtering, Sorting, and Caching
+
+Lists use opaque forward cursors with a proposed default of 25 and a maximum of 100. Order sessions and clips newest first by the relevant timestamp and break ties by ID. Use creation order for run and report lists and reverse chronological order for audit. Keep cursor scope bound to the caller, effective filters and stable ordering. Return `items: []` and `nextCursor: null` for an empty page. Recheck access per page and skip records no longer eligible. Query date bounds are inclusive `from` and exclusive `before` instants. Analysis and adoption calendar filters use inclusive date bounds in the specified zone. Use POST bodies for complex private filter selections and exact email lookup. Enforce a bounded timeline window inside the session.
+
+Send `Cache-Control: private, no-store` on private results, errors and bytes. Keep authorized reusable R results in the server-side store under input revision and filter scope, and invalidate them when source eligibility changes. Avoid retaining private pages and bytes in service-worker or browser application caches. Abort reads on sign-out or loss of authority. Playback uses authenticated fetch, with a bounded in-memory player object revoked on teardown or a known eligibility change. Qualify playback and requests for individual ranges on the supported laptop. Authorize before emitting range metadata, including `416`. Declared routes expose only eligible private bytes.
+
+## 11. Error Handling Standards
+
+REST operations use `application/problem+json` with a stable `type` URN, `code`, safe `title`, HTTP status and opaque `requestId`. Field errors identify JSON Pointers and safe codes. The standard `404 resource_unavailable` also covers cross-owner, deleted, expired and unknown private resources. Use `403 account_restricted` with the published support contact for a restricted driver’s own account. Authenticated callers can see permitted action-specific states without receiving private information about another principal. See the embedded OpenAPI responses. [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.html)
+
+| Status | Meaning and client behavior |
+| --- | --- |
+| `400` | Malformed envelope or syntactically invalid request. Correct the input before retrying. |
+| `401` / `403` | Sign in or renew identity where applicable. For a forbidden action, apply the published reason and follow the permitted flow. For revoked admin or MCP authority, close the affected view. |
+| `404` | Use the neutral unavailable state, clear the resource and return to an authorized list. |
+| `409` | State, version, replay, quota or eligibility conflict. Refresh relevant state before taking an allowed action. |
+| `413` / `415` / `416` / `422` | Respect body bounds, accepted media and range, or field validation. No retry of identical invalid input. |
+| `429` | Wait for `Retry-After` and recheck current authority. Provider allowance can use a distinct safe code. |
+| `500` / `502` / `503` / `504` | Safe internal or dependency failure. Retry only documented idempotent or replay-safe operations within their deadline. Consult status after ambiguous emergency dispatch. |
+
+Use action-specific codes where the client needs to distinguish states. Required distinctions include `controlled_use_changed`, `sync_incomplete`, `idempotency_conflict`, `clip_quota_exceeded`, `confirmation_expired`, `channel_not_qualified`, `provider_not_qualified`, `provider_connection_expired`, `provider_allowance_exhausted`, `mfa_required`, `fresh_mfa_required`, and `last_owner_required`. Use `provider_allowance_exhausted` with `429` and `Retry-After` only when a reset time is known. Availability and suppression of individual data points use typed success states. MCP and provider event handling use their protocol or provider-specific error and acknowledgment rules.
+
+## 12. Security and Reliability Requirements
+
+- Enforce TLS for web, API, identity, database and providers. Use explicit approved browser origins and narrowly scoped allowed request and exposed response headers for each environment. Check callback signature, audience, origin where applicable, and state before accepting side effects. Authorize every file read, including ranges and downloads. Keep credentials, tokens, wraps, precise location, raw measurements, chat content, report text, exact lookup values and reusable provider URLs out of telemetry. Log bounded counts, timing, status codes, span and request correlation, job lag and coarse reasons. Keep audit separate with its own access and retention policy.
+- Gate each commit with current account, owner, version and source checks. Use owner-aware database constraints and RLS under least-privilege runtime and worker roles. Treat auth loss, deletion or expiry as stronger than queued replay, upload publication, rendered output, or stale retrieval. Deny immediately and purge retained copies including backups within 30 days. Apply ordered deletion, lifecycle and revocation records during restore before reopening reads. Retained session and incident data expires after 90 days from end, hosted clips after seven days from capture, queued clips and precise coordinates after 24 hours from capture, and reports after 30 days from creation or earlier loss of a required source.
+- A report grant change during authoring or rendering blocks publication. A chat send checks current consent and provider connection before dispatch and before releasing a reply. Bind one active temporary conversation to the Clerk session, current provider credential and consent. Discard it on close, sign-out, sharing revocation or disconnect. Suppress an in-flight response invalidated before release and exclude prompts and replies from persistent application state. Condition release of bytes and metrics on current eligibility.
+- Bound interactive deadlines, concurrency, item and body sizes, retries, and polling. Initial poll delay is 2 seconds, doubling to a 15-second cap on consecutive pending responses, with jitter and respect for `Retry-After`. Stop polling when the view is hidden, terminal, canceled, or no longer authorized. Resume on an eligible view or reconnect. Apply a bounded interactive request deadline and a separate upload deadline sized for the measured workload. Exhausted time becomes a transitory or terminal state according to the operation. Backoff applies to retryable sync, callback and worker processing. Emergency dispatch has a separate short confirmation and deadline and no application-level provider retry.
+- Use transaction boundaries for sync item and receipt, finalization commitment, source state and dependent job insertion, emergency confirmation consumption and attempt claim, sensitive admin writes and their audit, and job publication. Fence job result release against lease generation, including after process interruption. Admin support messages persist a deduplicated intent and safe outcome. Authorization checks and replay identity must survive worker and service restarts.
+- Qualify against TRD §8. Targets include dashboard p95 ≤3 s at 20 signed-in users in the initial test and ≤2 s at 100 for public release, at least 95% of up-to-20 MB uploads within 60 s over a 5 Mbps uplink, 99% availability during the seven-day test, 15-minute restore and 5-minute recovery point. Measure both capacity levels and require zero lost or duplicate eligible records on supported disconnect and retry. Keep private gateway, worker, auth verification and recovery cost within the zero-project-cost release constraint. Monitor upload success, request p95, queue age, stale health data, backup lag, purge and per-channel outcomes.
+
+## 13. API Versioning and Evolution
+
+Use additive backward-compatible v1 response fields and new operation IDs for new capabilities. Clients handle unknown optional response fields and future status codes with a safe unavailable state. Use a new major path or negotiated message revision for incompatible changes. Version sync and worker messages independently and keep enough decoding compatibility for eligible offline and leased work across deployments. Hold upgraded clients until the server supports their advertised message revision. Treat loss of compatibility as recoverable setup or migration, while preserving eligible queued data. Deprecate only with a supported replacement, affected-consumer review and an announced migration window. MCP revisions and provider protocol versions have independent qualification.
+
+## 14. External Integrations
+
+| Integration | Boundary and qualification |
+| --- | --- |
+| Clerk | Verified email identity, recovery, same-account verified linking, signed lifecycle events, and MCP OAuth. Qualify Google and Apple independently and verify account supporting message behavior with the deployed identity configuration. Confirm CIMD client admission, resource and token audience checks, current grant and revocation, refresh behavior and available free-plan capacity. |
+| Supabase PostgreSQL | Private authoritative structured data, job leases, lifecycle and RLS. Qualify quota, connection pool, database growth and independent recovery. |
+| Private media and artifacts | FastAPI uses server credentials. Neon S3-compatible storage is a pilot candidate; qualify public media separately. Qualify export storage and independent encrypted recovery before activation. |
+| Resend and official WhatsApp Cloud API | Use independent adapters and signed callback configuration. Qualify verified sender and live delivery independently. Qualify WhatsApp recipient opt-in, opt-out, approved template, cost and the official provider status contract. |
+| Optional ChatGPT and Claude | Link using independently qualified official subscription-backed access and current disclosure. Existing docs identify a program requirement for ChatGPT and leave Claude pending an eligible official consumer path. Keep each capability gated until its own integration evidence passes. |
+| Next.js on Vercel, Python/R host | Serve public web assets through the selected frontend. Confirm qualified zero-cost frontend and always-on hosted API/worker behavior before public exposure. A local or attended demo does not complete public availability and recovery checks. |
+
+## 15. API Testing and Contract Validation
+
+| Test group | Evidence required before implementation handoff or release |
+| --- | --- |
+| Static document contract | Parse the embedded OpenAPI and standalone JSON Schemas, resolve references, validate examples and their status, and check operation IDs, path parameters, Markdown links and requirement traceability. |
+| Workflow and state | Exercise J1–J8 as two drivers, a delegated supervisor, a permitted external agent, qualified provider test fixtures, and independently scoped admins. Verify loading, ready, zero, unavailable, empty, incomplete, suppressed and recovery states at the indicated boundaries. Run UI keyboard and screen-reader checks for setup and review. |
+| Authority and isolation | Wrong parent and owner, changed IDs, switched accounts, cached links, revoked consent, expired grant or session, canceled provider linking, restricted account, stale MFA, reused TOTP, recovery-code replay and last-Owner invariant. Verify RLS with the runtime role and test the driver, MCP, chat, media, worker and admin partitions. |
+| Sync, files, and restore | Partial batch commit and lost response, duplicate and conflicting IDs, reordered references, tab crash, sign-out, consent change, expiry and deletion while sending or restoring. Confirm required-record end behavior, optional media independence, clip caps, valid and invalid ranges, and denied bytes after an intervening lifecycle change. Restored reads remain blocked until deletion and revocation are applied. |
+| Emergency dispatch | Controlled stationary or simulator fixtures with stale tab, camera loss, cancellation/recovery, changed destination, consent loss, expiry before claim, races at dispatch, offline before second contact, negative or unordered callbacks, ambiguous acceptance, and provider event deduplication. Assert at most one provider call per attempt and zero unintended alerts in the qualification fixtures. |
+| Jobs, analytics and reports | Exercise lease races, input invalidation, retry and interrupted render, suppressed groups, exact known fixture counts and unrounded numerical tolerance ≤0.000001. Verify 30/31 detections, both pause types, calendar/time band boundaries, overlapping counts, coverage and version comparability. Revoke grant during authoring and before release, reject unsupported references, and compare PDF and Word to the same reviewed figures. |
+| Admin disclosure and provider gates | Exercise 9 versus 10 contributors, complementary suppression and cross-range and revision differencing, incomplete cohorts, distinct-driver totals after expiry, stale versus fresh-zero metrics and channel-specific status. Record external identity, MCP reference-client, storage, callback and chat capability evidence independently of static tests. |
+
+## 16. Requirements Traceability Matrix
+
+| Requirement | Ownership and contract | Evidence |
+| --- | --- | --- |
+| FR-01 / AC-01 | M01 Clerk entry, `getAccount`, `acceptControlledUse` | J1, public entry and recovery without institutional affiliation |
+| FR-02 / AC-02 | M01 current caller and owner checks, M03/M04 private reads, M07/M08 scoped contexts, M09 least privilege | J2, J6–J8, cross-owner ID and revocation tests |
+| FR-03 / AC-03 | M01 `getPreferences`, `putPreferences`, M04 consent, M05 contact and location settings | J1–J3, preference and contact edit checks |
+| FR-04 / AC-04 | M02 local readiness and controls, M03 `startSession` and `finalizeSession` | J1–J3, camera denial, manual resume and supervisor scope |
+| FR-05 / AC-05 | M02 local inference and versioned observation | J1, J3, usable and unavailable observations, local video |
+| FR-06 / AC-06 | M02 safe pause, M03 `syncSession` and `getTimeline` | J1, J3, J4, observation-loss reason and fresh resume |
+| FR-07 / AC-07 | M02 combined warnings, M03 sync and `getIncident` | J1, J3, J4, overlapping evidence and acknowledgment |
+| FR-08 / AC-08 | M03 key binding, `unwrapDeviceKey`, `syncSession` and `finalizeSession` | J2, J8, offline replay, crash and switch isolation |
+| FR-09 / AC-09 | M02 local qualification and cancellation, M05 `prepareEmergencyAttempt`, `confirmEmergencyAttempt` and `invalidateEmergencySequence` | J3, fresh dwell, cancel and deadline races |
+| FR-10 / AC-10 | M05 ordered contacts and consent, `getEmergencySequence` and callback operations | J3, delivery versus acceptance, opt-out and no stale fallback |
+| FR-11 / AC-11 | M03 `syncSession`, `getSession`, `getTimeline` and `getIncident` | J1, J2, J4, durable grouping, timings and observation coverage |
+| FR-12 / AC-12 | M04 `putRecordingConsent`, `registerClip`, `uploadClip` and `playClip` | J1, J2, video-only bounds and revocation |
+| FR-13 / AC-13 | M04 `listClips` and `deleteClip`, M03 `deleteSession`, M01 `deleteAccount`, M07 withdrawal, M10 purge | J2, J6, lifecycle and restore tests |
+| FR-14 / AC-14 | M06 `getDashboard`, `getSessionAnalytics`, `resolvePersonalOverview`, M03 timeline and incident reads | J4, deterministic KPI, chart, comparison and availability fixtures |
+| FR-15 / AC-15 | M06 R provenance, `getStudy` and method-specific eligibility | J5, reproducible estimates, evidence and withholding reasons |
+| FR-16 / AC-16 | M06 `listReplaySources`, `startSimulation`, `listSimulations` and `getSimulation` | J5, compatible owner replay and reference label checks |
+| FR-17 / AC-17 | M06 dataset and Studio operations, `downloadStudyAggregate` | J5, approved fixtures and suppression across output channels |
+| FR-18 / AC-18 | M06 `getBenchmark` and internal approved benchmark publication | J5, J6, held-out aggregate verification |
+| FR-19 / AC-19 | M07 report-authoring tools, `getReportStatus`, `getReport`, report export operations | J6, evidence checking, snapshot parity and withdrawal |
+| FR-20 / AC-20 | M07 `getMcpResourceMetadata`, `handleMcp`, scoped tools and `revokeMcpGrant` | J6, J8, compatible client, scopes, refresh and immediate revocation |
+| FR-21 / AC-21 | M08 qualification, link, consent, `sendChatMessage`, close and disconnect | J7, temporary handling and consent-race tests |
+| FR-22 / AC-22 | M09 `getServiceHealth`, `getReleaseReadiness`, `resolveAdoption`, support, invitation, MFA, access and audit operations | J8, aggregate disclosure, least privilege, verified action and audit |
+| NFR-01–06 / SM-01–05 | §12 targets, M02 supported local device and accessibility, M03/M04 reliability, M06 evidence, M09 restricted operational projections, M10 restore | J1–J8 and TRD §8 release evidence |
+
+| Journey | Data and user actions | State and recovery check |
+| --- | --- | --- |
+| J1 First controlled session | M01 sign up and accept use, M02 readiness/observe/resume, M03 start and end, M06 ready summary | Camera denied returns to recheck. Pending sync or analysis shows status, then ready summary. |
+| J2 Private recovery, clips and deletion | M03 same-owner unlock and durable sync, M04 private replay and deletion, M01 account deletion | Sign-out and account switch lock the queue. Missing clip becomes unavailable without removing independent evidence. |
+| J3 Supervised warning and contact alert | M02 local warnings, M05 countdown, per-channel confirmation, delivery evidence and authorized review | Cancellation stops unsent attempts. Uncertainty expires to Unconfirmed. Recipient opens direct message without signing in. |
+| J4 Understand and compare | M06 ready dashboard, filtered overview and comparisons with evidence from M03/M05 | New pending sessions preserve the previous eligible scope. No usable exposure and zero detections are distinct. |
+| J5 Simulate, study and benchmark | M06 compatible replay, saved runs, controlled fixtures, aggregate export and approved benchmark | Show queued runs, unavailable sources, withheld inference, no reference labels and suppressed groups explicitly. |
+| J6 Agent-authored reports | M07 authorize scopes, collect approved evidence, submit and revise draft, review/export | Revocation stops release. Expired links can be requested again only from a still-eligible snapshot. |
+| J7 Temporary chat | M08 link qualified provider, consent, send/follow up and close or revoke | Expired link or quota gets actionable feedback. Closing or revoking clears local chat and invalidated replies. |
+| J8 Operate and support | M09 metrics and adoption, invitations, MFA, exact lookup, message, suspend/reinstate and audit | Display stale and suppressed values distinctly. Restriction locks hosted sync; fresh eligible identity lets pending records retry. |
+
+## 17. Architecture Consistency Review
+
+The HTTP and message surfaces follow the architecture’s ownership, module interfaces and logical schema. The API derives resource authority at the server and keeps internal object keys, staff-only data, raw live video, worker leases and report authoring evidence out of unrelated surfaces. Device and sync writes preserve stable identity, R results remain the source for published numbers, contact delivery stays separate from detection feedback, report authoring stays agent-only, and administration sees narrow account and aggregate projections.
+
+Current requirements reflect the later client-neutral MCP, independently qualified channels and optional chat decisions. The archived architecture spine in Git commit `4923de79cb4c4b6a166091d0f3ef53a05a71ddfb` records the earlier AD-1–AD-8. The current architecture and TRD are the source for later decisions and the release tests. PRD §8.5 uses the same strict emergency fallback wording as FR-10, TRD §6 and J3.
+
+## 18. Open Questions and Decisions Requiring Approval
+
+### Architecture conflicts and decisions required
+
+| Decision or gap | Affected contract and approval evidence |
+| --- | --- |
+| Browser-to-dispatch liveness and timing | FR-09/10 and TRD §6 require live per-attempt proof and cancellation precedence. The separate challenge plus confirmation protocol and tab binding are proposed. Qualify cancellation, camera pause, reconnect, stale destination and disconnect races at the final provider boundary. An HTTPS attestation cannot prove that the browser state stayed unchanged between observations. Withhold dispatch when live authority cannot be established and hold each live channel until this behavior passes its qualification. |
+| Contract limits and timings | Confirm measurement format/catalog, replay cadence, per-session size and sync envelope bounds. Qualify polling defaults, per-route body limits, upload timeout, provider deadlines, lease durations, admission and abuse limits, fresh MFA window, and authorization status checks against TRD §8 and the offline window. |
+| MCP revision and Clerk compatibility | Verify a client-neutral reference client for the proposed 2026-07-28 profile, Clerk CIMD admission, resource audience, separate consent, token refresh and immediate revocation on the zero-cost deployment. Confirm supported revisions from actual client evidence before publishing compatibility claims. |
+| Report and Studio export | Approve private export storage, retained artifact cleanup and PDF/DOCX verification. The Studio aggregate download route remains gated until an aggregate export format and media type are approved. |
+| Admin publication and freshness | Approve fixed publication units, cross-range and cross-revision disclosure rules and freshness thresholds. Withhold results where anonymity or the necessary input cannot be established. |
+| Provider and hosting qualification | Record independent evidence for Google, Apple, email, WhatsApp and each optional subscription chat adapter, including the provider-specific linking wire shape. Confirm public host, private media capacity, zero charge, independent backup destination and restore evidence. |
+| Runtime and design handoff | Freeze supported behavior and model versions, recording format and approved evidence catalogs. Qualify browser binary playback and the dashboard payload on the reference laptop. Resolve RAFIQ-specific warning, chart and focus presentation through the existing experience and visual design handoff. |
+
+The proposed wire conventions include UUID and casing choices, individual clip upload admission, HTTP polling defaults, and private media fetch. Confirm these during contract review and update this specification before enabling any gated integration. Ali Sameh retains release approval under the PRD and TRD.

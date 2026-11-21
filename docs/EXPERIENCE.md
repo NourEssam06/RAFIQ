@@ -12,7 +12,7 @@ sources:
 
 ## Foundation
 
-This is RAFIQ’s application-flow specification. The approved [PRD](PRD.md) governs scope, operating limits, and release gates. The [TRD](TRD.md) governs technical behavior and calculations. This document governs navigation, interaction, and state presentation. The existing [DESIGN.md](DESIGN.md) owns visual direction. The written contracts take precedence over mockups and reference captures.
+This is RAFIQ’s application-flow specification. The approved [PRD](PRD.md) governs scope, operating limits, and release gates. The [TRD](TRD.md) governs technical behavior and calculations. The [API specification](API.md) maps the eight journeys and their states to hosted operations and on-device behavior. This document governs navigation, interaction, and state presentation. The existing [DESIGN.md](DESIGN.md) owns visual direction. The written contracts take precedence over mockups and reference captures.
 
 RAFIQ is an English-language desktop browser application for adult drivers using controlled stationary sessions or an approved supervised vehicle test. The qualification baseline is Chrome on Windows 11 with a built-in camera. There are three browser surfaces: public account access, the private driver application, and separate invitation-only administration. A supervisor uses only delegated controls on the driver's device. Emergency contacts receive messages in their inbox or WhatsApp. Compatible agents connect through MCP. Clerk supplies identity screens and verified account-linking behavior. Navigation names, screen grouping, and example copy below are UX decisions derived from the approved requirements.
 

@@ -44,12 +44,13 @@ RAFIQ is a desktop-browser application for adults conducting controlled stationa
 | --- | --- |
 | [PRD](PRD.md) | Product scope, actors, operating limits, release gates, and approved acceptance criteria. |
 | [TRD](TRD.md) | Technical contracts, logical data model, pinned dependency baseline, and verification targets. |
-| [Architecture spine](planning-artifacts/architecture/architecture-RAFIQ-2026-11-20/ARCHITECTURE-SPINE.md) | Adopted architecture invariants AD-1 through AD-9. |
+| [Archived architecture spine](https://github.com/alisameh05/RAFIQ/blob/4923de79cb4c4b6a166091d0f3ef53a05a71ddfb/docs/planning-artifacts/architecture/architecture-RAFIQ-2026-11-20/ARCHITECTURE-SPINE.md) | Earlier decisions AD-1 through AD-8. Section 17 records the current decisions, including later changes to MCP, emergency delivery and optional chat. |
 | [Application experience](EXPERIENCE.md) | Screen names, navigation, journeys, and state presentation. This is RAFIQ’s application-flow specification. |
 | [Design foundations](DESIGN.md) | Visual direction and shared tokens, with RAFIQ-specific warning, focus, and chart treatments tracked separately in the experience handoff. |
-| [Contract review](planning-artifacts/architecture/architecture-RAFIQ-2026-11-20/reviews/review-contracts.md) and [provider review](planning-artifacts/architecture/architecture-RAFIQ-2026-11-20/reviews/review-providers.md) | Historical failure cases and qualification leads. Current PRD, TRD, and spine govern their disposition. |
+| [API specification](API.md) | Operation IDs, paths, wire contracts, examples, and unresolved API decisions. |
+| [Archived contract review](https://github.com/alisameh05/RAFIQ/blob/4923de79cb4c4b6a166091d0f3ef53a05a71ddfb/docs/planning-artifacts/architecture/architecture-RAFIQ-2026-11-20/reviews/review-contracts.md) and [provider review](https://github.com/alisameh05/RAFIQ/blob/4923de79cb4c4b6a166091d0f3ef53a05a71ddfb/docs/planning-artifacts/architecture/architecture-RAFIQ-2026-11-20/reviews/review-providers.md) | Historical failure cases and qualification leads. Current PRD, TRD, and architecture govern their disposition. |
 
-The diagram sequence follows the visual structure of the [Pravaha architecture](https://github.com/Monolithic-Dev/Pravaha/blob/main/docs/ARCHITECTURE.md). The implementation interfaces below use named operations from the TRD. URL paths and wire schemas belong in a future API specification.
+The diagram sequence follows the visual structure of the [Pravaha architecture](https://github.com/Monolithic-Dev/Pravaha/blob/main/docs/ARCHITECTURE.md). The boundaries below use the capability names from the TRD. The [API specification](API.md) maps them to URL paths, operation IDs, and wire schemas.
 
 ## 1. System Context (C4 Level 1)
 
@@ -86,7 +87,7 @@ Live camera frames and unused pre-event footage remain on the laptop. A consente
 
 **Proposed.** Organize modules by product capability. Use a thin transport layer, application use cases with explicit inputs and outputs, and persistence and provider adapters behind narrow ports. Domain policy and calculations stay with their owner. The composition layer binds adapters and coordinates multi-module operations. Shared types cover only contracts that independent consumers must interpret consistently, such as elapsed timestamps, observation usability, stable identifiers, and provenance. Enforce direction with import checks, and test each capability with deterministic inputs and isolated adapter fixtures.
 
-This arrangement trades independent service deployment for simpler transactions, fewer operational dependencies, and one product authorization boundary. It carries two different execution constraints: browser resources must support CPU-only local feedback, and hosted resources must support jobs, media, and recovery at zero project cost. Measure each constraint before activation. [Architecture spine AD-1–AD-9](planning-artifacts/architecture/architecture-RAFIQ-2026-11-20/ARCHITECTURE-SPINE.md) · [TRD §§1, 7–8](TRD.md)
+This arrangement trades independent service deployment for simpler transactions, fewer operational dependencies, and one product authorization boundary. It has two execution constraints. Browser resources must support CPU-only local feedback, and hosted resources must support jobs, media, and recovery at zero project cost. Measure each constraint before activation. [Current architecture decisions](#17-architectural-decisions-and-trade-offs) · [TRD §§1, 7–8](TRD.md)
 
 ## 3. System Module Decomposition
 
@@ -985,7 +986,7 @@ Service Health distinguishes fresh zero, a confirmed outage, Unknown when sample
 
 ## 16. Project Structure and Module Mapping
 
-**Existing planning sources:** `docs/PRD.md`, `docs/TRD.md`, `docs/EXPERIENCE.md`, `docs/DESIGN.md`, and the architecture and PRD artifacts in `docs/planning-artifacts/`.
+**Existing planning sources.** [PRD](PRD.md), [TRD](TRD.md), [EXPERIENCE](EXPERIENCE.md), [DESIGN](DESIGN.md), and [API](API.md). Historical planning artifacts remain available in the [archived Git revision](https://github.com/alisameh05/RAFIQ/tree/4923de79cb4c4b6a166091d0f3ef53a05a71ddfb/docs/planning-artifacts).
 
 **Proposed application paths:**
 
@@ -1044,7 +1045,7 @@ Place provider adapters near their owner and introduce internal folders only whe
 | FR-22 Admin separation · **Confirmed** | Dedicated staff policy, least-privilege support, and checked aggregate views support operation with limited data. A general driver-admin interface would expose unrelated private information. Preserve evidence, audited actions, and disclosure checks. |
 | Module and folder boundaries · **Proposed** | A capability-based layout aligns code and test ownership with product rules. Page-based ownership would split behavior across entry points. The composition layer and import checks preserve explicit dependencies without adding deployable services. |
 
-The [architecture spine](planning-artifacts/architecture/architecture-RAFIQ-2026-11-20/ARCHITECTURE-SPINE.md) records AD-1–AD-9. The [TRD](TRD.md) governs implementation contracts and qualification.
+The [archived architecture spine](https://github.com/alisameh05/RAFIQ/blob/4923de79cb4c4b6a166091d0f3ef53a05a71ddfb/docs/planning-artifacts/architecture/architecture-RAFIQ-2026-11-20/ARCHITECTURE-SPINE.md) records the earlier AD-1–AD-8, including the initial Codex-specific MCP and email-only design. This section incorporates the later client-neutral MCP, channel-specific emergency delivery and optional chat decisions. The [TRD](TRD.md) governs technical behavior and qualification, and the [API specification](API.md) defines the proposed wire contract.
 
 ## 18. Extensibility and Future Evolution
 
@@ -1099,7 +1100,7 @@ Acceptance definitions and the exact release evidence remain in the [PRD](PRD.md
 | Browser inference and recording | Select the license-compatible ONNX model, packaged weights and asset hashes, verify MediaPipe and WebM/VP8 performance, and freeze the catalog, annotation and scoring protocol and any new behavior classes before sign-off. |
 | Supervised use, emergency channels, and social connections | Approve the supervised procedure, timing and drowsiness evidence, sender domain, WhatsApp opt-in/template/delivery and cost, and each live channel separately. Record independent production Google and Apple identity evidence and Apple zero-cost eligibility. |
 | MCP and optional chat | Record the deployed MCP revision and client-neutral scope, revocation and authoring checks. Qualify official subscription access, consent, privacy and zero project cost for each optional chat provider. |
-| Implementation and design handoff | Confirm the proposed module layout, exact API paths and wire contracts, measurement cadence and size bound, adoption publication units and freshness thresholds, RAFIQ-specific charts and warning/focus treatments, and Studio aggregate export format. |
+| Implementation and design handoff | Review the proposed [API wire contracts](API.md), measurement cadence and size bound, adoption publication units and freshness thresholds, and Studio aggregate export format. Confirm the proposed module layout and RAFIQ-specific chart, warning and focus treatments during implementation handoff. |
 
 ### Document checks
 
