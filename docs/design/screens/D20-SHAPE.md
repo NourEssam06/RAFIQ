@@ -1,0 +1,63 @@
+# D20 Monitoring settings
+
+**Implemented in Pen.dev.** The signed-in driver opens **Settings → Monitoring** while stationary to review and prepare preferences for a later monitoring session. The driver chose **review all settings in one pass** and authorized the Pen.dev build. Success means knowing which values are saved, what the next session will use, and whether RAFIQ currently has permission to record clips. Mode is **Operate**. [Screen requirements](../../SCREENS.md#d20-monitoring-settings) · [Experience](../../EXPERIENCE.md#readiness-monitoring-and-recovery)
+
+## Layout concepts
+
+| Concept | Composition and behavior | Trade-off |
+| --- | --- | --- |
+| **A · Continuous form (recommended)** | D19 Settings navigation beside a single reading column. Below **Monitoring settings** and the next-session note, use flat dividers between **Camera**, **Warnings**, and **Incident recording**. Keep recording status and withdrawal at the top of its group, then categories, durations, clip details and Privacy. Finish with **Save** and adjacent feedback in normal page flow. | Supports a full review with the same reading order at every width. Reaching the final action takes one page scroll when the viewport is short. |
+| **B · Form with section links** | Keep all three groups in one scroll and add a small desktop **On this page** rail for Camera, Warnings and Incident recording. Links jump to headings while preserving edits. On narrow screens the links wrap below the title and above the form. Save and withdrawal stay in their respective locations. | Faster repeat access to one group. Adds a second navigation tier beside the Settings destinations and takes space away from the form. |
+
+Reuse the D19 private shell with **Settings** selected and **Monitoring** current. The inspected Pen references are D19 desktop `m9Bu2` and narrow `Tl48f`, the RAFIQ foundations `v3WGH`, D02 saved opt-in `vnVMD`, D03 recording states `sbyzq`, and the D03 enhanced warning example `B84qhi`. Use the 1440 px shell and 48 px desktop content gutters, with D19’s compact header, Settings selector and 20 px gutters at the 390 px reference. At narrow laptop widths and 200% zoom, let long labels and status text wrap, align controls below their labels when needed, and stack the Before and After controls. At 320 CSS px use one vertical scroll and keep focused controls, errors and Save feedback in view. No charts are needed. [D19 shape and canvas references](D19-SHAPE.md) · [RAFIQ Pen canvas](<../../../Pen Design/RAFIQ.pen>)
+
+Inherit the D19 control vocabulary and DESIGN.md tokens. Use Space Grotesk as the documented Mori substitute, `colors.canvas` (#0e100f), `colors.ink` (#fffce1), and `colors.accent-stone` (#bbbaa6). Follow the existing 8 px compact gaps, 16 px row spacing, 24 px group spacing and 8 px control treatment where applicable. Use the established warning, focus, button and status treatments from the RAFIQ foundations and adjacent frames. [Visual tokens](../../DESIGN.md) · [Driver monitoring references](D03-SHAPE.md)
+
+## Groups and controls
+
+| In order | What the driver sees and does |
+| --- | --- |
+| **Camera** | **Built-in camera** with the supported local choice and its permission or availability state. A single available choice can appear as a labeled value. Use the existing picker treatment when multiple qualified built-in choices are available. Offer correction and **Recheck** when permission is blocked or the saved device is missing. Reuse D02 language and keep the preview and full readiness check in D02. A permission request uses camera video only. |
+| **Warnings** | **Warning audio** is an On/Off switch for the draft. **Warning visibility** is one radio group presented as **Default / Enhanced visibility**, with immediate selection feedback and a short description of enhanced visibility. The setting makes warning text and the existing non-color cue more prominent. RAFIQ’s release policy supplies the monitored behaviors, severity, timing, escalation, recovery and cooldown. |
+| **Incident recording** | Show the effective state as text, such as **Recording allowed** or **Recording off**. For off state, propose an explicit **Allow video-only incident clips** opt-in that requires Save and confirmation. For on state, put **Withdraw recording consent** and its consequence next to the effective state, independent of the draft. Group independently selectable checkboxes under **Behaviors to record**, populated from eligible release categories. Use Drowsiness, Distraction, Phone use, Eating and Drinking as conditional fixtures. Reaching is a release candidate. Use one slider each for **Before incident** and **After incident**. Each accepts whole seconds from 0 to 5 and defaults to 3 when a saved value is absent. Show the exact value with its unit and provide a pointer path that requires no drag. While recording is off, keep the group readable and explain why clip controls are unavailable until opt-in is selected. |
+
+Suggested copy for the actions and disclosure
+
+- Place “Saved changes apply to later sessions” near Save.
+- Place “Withdraw consent to stop capture now and discard unsent clips, including clips still uploading. Monitoring and warnings continue” beside withdrawal.
+- Keep “Clips are video-only. Each clip is limited to 30 seconds and 20 MB” and the **Privacy** link visible. The **How clips are saved** disclosure can explain that reaching a cap keeps the first segment, labeled **Available first segment**, and that unused temporary context stays on the device. The live feed stays on-device. [Recording requirements and acceptance](../../PRD.md#54-history-recordings-and-data-lifecycle) · [Clip and offline contracts](../../TRD.md#2-session-recording-and-offline-contracts) · [Privacy](../../SCREENS.md#d22-privacy)
+
+## Save and withdrawal states
+
+| State | Visible behavior and acceptance |
+| --- | --- |
+| **Loading / unavailable** | Use static placeholders while reading authorized preferences and consent. On failure, name the affected section with **Retry**. Represent unknown consent as unknown and expose withdrawal whenever effective opt-in is known. For a blocked or missing camera, show a specific message and a correction path. A saved camera preference is distinct from device readiness. |
+| **Clean / edited / invalid** | Hydrate from confirmed settings without animation. Distinguish a pending opt-in from effective consent until confirmed. Mark an edited form with **Unsaved changes**. On invalid submit, keep the draft, use inline guidance and take focus to the first invalid field. Validate independent integer bounds and current eligible behavior choices. An empty group implies zero matching clips. Any requirement for a nonempty group needs product/API confirmation. |
+| **Saving / confirmed / failed** | Keep **Save** in place and show **Saving…**, blocking repeat submissions. Show **Saved. Changes apply to later sessions.** only once the requested writes have been confirmed. If a save only partly succeeds, identify confirmed sections and the section that needs retry. Keep the failed draft. On a consent revision conflict, refresh the effective state and require review of a still-applicable draft before retry. Use the existing authorized account and consent interfaces. |
+| **Withdraw selected** | The dedicated action stops local capture immediately, discards unsent clips and invalidates pending transfers. It bypasses Save, animated transitions and pending preference changes. An in-flight save or stale response must never restore consent. Keep unrelated drafts available. Give the recording row its own status and preserve the driver’s focus when the action changes. |
+| **Withdrawal confirmed / connection interrupted** | On confirmed withdrawal show **Recording off**. If remote confirmation is unavailable, keep capture off and show a distinct message such as **Recording stopped on this device. Account update pending.** when local stop is known. Do not claim remote completion before acknowledgment. Keep withdrawn items from returning to the upload queue after reconnect. Confirm the remote reconciliation and retry behavior with the consent owner. |
+
+Changing the camera, warning presentation or clip preferences uses the later-session workflow. Withdrawal follows the same immediate capture and queue rules as D03. Already published clips follow the D22 expiry/deletion flow. D02 reads effective consent on readiness and permits monitoring when clips are declined. D10/D11 carry the clip availability and truncation treatment. [API preferences and recording-consent operations](../../API.md#7-detailed-endpoint--operation-specifications) · [Recording consent ownership](../../ARCHITECTURE.md#module-m04--clips-and-media) · [Live policy](../../PRD.md#83-benchmark-and-behavior-policy)
+
+## Reuse, keyboard and motion
+
+- **Existing RAFIQ references.** Reuse D19 shell, settings selector, dividers, field focus and adjacent Save status. Use the D02 camera and consent wording and the D03 warning and recording status conventions. Use the RAFIQ Review measure selector `mCZsh` and What-If slider `jP0XX` and exact-value field `zdUWL` as visual references. Keep D20’s independent slider behavior and radio semantics.
+- **Standard controls.** Use a labeled native picker when needed, a warning audio switch with a stable name, a radio fieldset for visibility, a checkbox fieldset for categories, two independent one-thumb sliders or precise value selectors, a disclosure and an ordinary Save button. Tab follows reading order, Space toggles switches and checkboxes, and arrow keys change radio selection and slider values. With sliders, verify Home/End and announce the units with the current value. Use visible focus and usable pointer targets. Test actual contrast, screen-reader labels and errors, keyboard-only traversal, 320 CSS px reflow and that saving or withdrawing never steals focus. [RAFIQ accessibility floor](../../EXPERIENCE.md#accessibility-floor) · [Control patterns](https://www.w3.org/WAI/ARIA/apg/patterns/) · [Slider keyboard behavior](https://www.w3.org/WAI/ARIA/apg/patterns/slider/) · [WCAG 2.2](https://www.w3.org/TR/WCAG22/)
+- **RAFIQ-specific group treatment.** Pair effective recording status and explicit withdrawal in one always-visible local row. Keep draft Save and immediate withdrawal announcements separate. Use a persistent polite status region for confirmation and appropriate inline failure text. Each critical state is legible without sound, color or movement. [Status messages](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html)
+- **Optional animation.** Recommend short, dependency-free feedback. On audio toggle glide the thumb in 140 ms. On category selection show the check immediately with a subtle 120 ms emphasis. On visibility selection show text, outline and state immediately with a 140 ms surface transition. Sliders follow input directly with no interpolated values or lag. Use a 180 ms disclosure reveal for supplementary text and a 150 ms fade for the decorative Save check after acknowledgment. Honor reduced motion by snapping to the final state. Consent, warnings, focus, error text and live announcements update immediately. [Component alternatives](D20-COMPONENT-RESEARCH.md)
+
+For Pen.dev, review the desktop and narrow layouts, effective opt-in/off, unsaved opt-in, withdrawal pending/confirmed, camera blocked, clip details open, and saving/saved/partial failure frames. Show control start and end states and annotate proposed timings beside the canvas frames. The frontend owns keyboard/AT behavior, permission detection, reduced motion, preference persistence and revocation races.
+
+## Canvas handoff
+
+The Pen.dev build uses concept A, native editable controls, and minus/plus adjustment alongside each duration slider. It uses the D19 shell and inline Save acknowledgment and adds reusable checkbox, audio switch, and duration-step components. The state board shows inline opt-in saved for later sessions, direct immediate withdrawal, separate Save and consent feedback, and the proposed motion timing.
+
+| Frame | Pen node |
+| --- | --- |
+| D20 / Monitoring settings / Desktop | `CLW1T` |
+| D20 / Monitoring settings / Narrow 390 px | `s2Mo91` |
+| D20 / Monitoring settings / 320 px reflow | `f37lIe` |
+| D20 / Monitoring settings / Control library | `DTYj5` |
+| D20 / Monitoring settings / Interaction states | `J6ypN` |
+
+Confirm the applicable camera qualification, recording-catalog source, and remote withdrawal reconciliation during frontend integration. The published recording schema provides a maximum category count and uniqueness, with no minimum count. [Editable Pen.dev canvas](<../../../Pen Design/RAFIQ.pen>)

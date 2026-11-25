@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAFIQ Â· See what RAFIQ sees</title>
+<style>
+:root{color-scheme:dark;--bg:#0e100f;--ink:#fffce1;--stone:#bbbaa6;--cyan:#00bae2;--rule:#53554d;--pad:clamp(22px,5vw,84px);font-family:"Space Grotesk","Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+*{box-sizing:border-box}body,h1,h2,h3,p,figure{margin:0}a,button{color:inherit;font:inherit}a{text-decoration:none}button{cursor:pointer}a:focus-visible,button:focus-visible{outline:3px solid var(--cyan);outline-offset:4px}
+header,footer,.bar,.actions{display:flex;align-items:center;justify-content:space-between;gap:16px}header{height:76px;padding:0 var(--pad)}header img{width:148px;display:block}nav{display:flex;gap:clamp(16px,3vw,52px)}nav a:hover,footer a:hover{text-decoration:underline}
+.story{height:340svh;position:relative}.stage{position:sticky;top:0;height:100svh;overflow:hidden;isolation:isolate}.lens,.photo,.shade{position:absolute;pointer-events:none}.lens{object-fit:contain;width:55%;height:94%;right:-2%;top:1%;mask-image:linear-gradient(90deg,transparent,#000 8%)}.photo,.shade{inset:0}.photo{inset:auto;left:74%;top:44%;width:210vmax;height:210vmax;border-radius:50%;overflow:hidden;transform:translate(-50%,-50%) scale(0);will-change:transform}.scene-image{position:absolute;left:50%;top:50%;width:100vw;height:100svh;transform-origin:74% 44%;background:url("images/generated.png") center/cover;will-change:transform}.obstructed{position:absolute;inset:0;background:url("images/camera-obstructed.webp") center/cover;opacity:0;pointer-events:none;will-change:opacity}.intro,.lens{will-change:transform,opacity}.shade{background:linear-gradient(0deg,#080a09df,transparent 44%);opacity:0}
+h1,h2,h3{font-weight:400;letter-spacing:-.055em}h1{font-size:clamp(68px,8.4vw,154px);line-height:.94}.intro{position:absolute;top:14%;left:var(--pad);width:52%}.intro p{margin:26px 0 32px;font-size:clamp(18px,2.1vw,34px);line-height:1.22}.pill{display:inline-flex;align-items:center;gap:24px;border:1px solid var(--ink);border-radius:80px;padding:13px 22px}.scrollhint{position:absolute;bottom:8%;left:var(--pad);color:var(--stone)}
+.scene-caption{position:absolute;bottom:8%;left:var(--pad);opacity:0}.scene-caption p,.eyebrow{color:var(--stone);font-size:12px;letter-spacing:.11em;text-transform:uppercase}.scene-caption h2{font-size:clamp(40px,6vw,100px)}.status{position:absolute;right:var(--pad);top:24%;opacity:0;background:#0e100fea;border:1px solid var(--cyan);border-radius:8px;padding:18px 24px;display:grid;gap:6px}.status strong{font-weight:500;color:var(--cyan);font-size:clamp(21px,2.3vw,36px)}.status.pause{border-color:var(--stone)}.pause strong{color:var(--ink)}
+.static-scene{display:none}.section{margin:0 var(--pad);padding:clamp(56px,7vw,104px) 0;border-top:1px solid var(--rule)}.section h2{font-size:clamp(42px,6.7vw,104px);line-height:1.04;margin:14px 0 32px}.sub{color:var(--stone);font-size:18px;line-height:1.45}.timeline{display:flex;margin:40px 0 24px;align-items:flex-start}.stop{position:relative;isolation:isolate;flex:1;text-align:center;padding:26px 0 10px;color:var(--stone);border:0;background:none}.stop:before{content:"";position:absolute;top:7px;left:0;width:100%;height:1px;background:var(--rule);z-index:-1}.stop:first-child:before{left:50%;width:50%}.stop:last-child:before{width:50%}.stop:after{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:13px;height:13px;border-radius:50%;background:var(--bg);border:1px solid currentColor}.stop[aria-pressed=true]{color:var(--cyan)}.stop[aria-pressed=true]:after{background:currentColor}
+.detail,.sim{border:1px solid var(--rule);border-radius:8px;padding:clamp(22px,3vw,48px)}h3{font-size:clamp(26px,3.2vw,52px);margin:6px 0}.two{display:grid;grid-template-columns:1fr 1fr;gap:6vw;align-items:center}.chart{padding:22px 0}.chart figcaption{color:var(--stone);margin-bottom:24px}.chartrow{display:grid;grid-template-columns:82px 1fr 24px;align-items:center;gap:12px;margin:17px 0}.track{height:13px;border-bottom:1px solid var(--rule)}.track i{display:block;height:100%;background:var(--stone)}.chartrow:last-child i{background:var(--cyan)}
+.actions{justify-content:flex-start;flex-wrap:wrap;margin:22px 0}.actions button{border:1px solid var(--rule);border-radius:32px;background:none;padding:11px 22px}.actions button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan)}.result{padding-top:18px;border-top:1px solid var(--rule)}footer{border-top:1px solid var(--rule);margin:0 var(--pad);padding:28px 0;color:var(--stone)}
+@media(max-width:700px),(max-height:470px),(prefers-reduced-motion:reduce){.story{height:auto}.stage{position:relative;height:auto;display:flex;flex-direction:column;padding:24px var(--pad) 0}.intro{position:static;width:100%;order:0}.lens{position:relative;order:1;right:auto;top:auto;width:min(100%,620px);height:auto;align-self:flex-end;margin-top:18px}.photo,.obstructed,.shade,.scene-caption,.status,.scrollhint{display:none}.static-scene{display:block;margin:18px var(--pad) 40px}.static-scene img{width:100%;display:block;border-radius:8px;margin:16px 0}.static-scene p{margin-top:8px}.two{grid-template-columns:1fr;gap:22px}}
+@media(max-width:700px){header{height:66px}header img{width:100px}nav{font-size:14px}h1{font-size:clamp(56px,13vw,88px)}.intro p{margin:18px 0 20px}.bar{align-items:flex-start;flex-direction:column}}
+
+.join-ending{margin:0 var(--pad);border-top:1px solid var(--rule);padding:clamp(50px,6vw,90px) 0 clamp(58px,7vw,105px)}
+.join-ending h2{font-size:clamp(66px,8.5vw,144px);line-height:.95;letter-spacing:-.055em}
+.join-ending p{color:var(--stone);font-size:clamp(18px,1.8vw,26px);line-height:1.4;margin:clamp(22px,2.7vw,40px) 0 28px}
+.join-action,.film-play{font-size:clamp(17px,1.6vw,23px);min-height:48px}
+.driver-film{margin:clamp(22px,3vw,48px) var(--pad)}
+.film-screen{position:relative;aspect-ratio:1344/693;overflow:hidden;border-radius:8px;background:var(--bg)}
+.film-screen img,.film-screen video{height:100%;width:100%;object-fit:cover;display:block}
+.film-screen video{object-fit:contain;background:#080a09}
+.film-screen [hidden]{display:none}
+.film-play{position:absolute;bottom:clamp(12px,3vw,45px);right:clamp(12px,3vw,45px);background:#0e100feb}
+</style><link rel="stylesheet" href="agent/chapter.css">
+<header id="top"><img src="brand/rafiq-static.svg" alt="RAFIQ"><nav><a href="#sample">How it works</a><a href="#sample">RAFIQ Agent</a></nav></header>
+<main>
+<section class="story" aria-label="From lens to session"><div class="stage">
+<img class="lens" src="images/hero-lens.webp" alt="" width="595" height="530">
+<div class="intro"><h1>See what<br>RAFIQ sees.</h1><p>On-device driver monitoring.<br>A private record of what happened.</p><a class="pill" href="#sample">See how RAFIQ works <span aria-hidden="true">â†“</span></a></div>
+<div class="scrollhint">â†“ &nbsp; Scroll into the session</div><div class="photo"><div class="scene-image"></div></div><div class="obstructed"></div><div class="shade"></div>
+<div class="scene-caption"><p>Sample session</p><h2>Parked vehicle</h2></div>
+<div class="status warning"><strong>Drowsiness observed</strong><span>Sustained eye closure Â· 2 s</span></div><div class="status pause"><strong>â…¡ &nbsp; Monitoring paused</strong><span>Camera view became obstructed.</span></div>
+</div></section>
+<section class="static-scene"><h2>Sample session Â· Parked vehicle</h2><img src="images/generated.png" alt="Staged driver with eyes closed in a parked vehicle"><p>Drowsiness observed Â· Sustained eye closure for 2 s</p><p>Monitoring paused Â· Camera view became obstructed.</p></section>
+<section class="agent-story" id="sample" aria-label="RAFIQ Agent capabilities">
+<div class="agent-stage">
+<div class="agent-rail"><strong>RAFIQ Agent</strong><span>Parked vehicle Â· Sample data</span></div>
+<div class="agent-art" role="img" aria-label="Graphite RAFIQ companion with cyan eyes and a cream chest mark"></div>
+<article class="agent-panel"><div><p class="eyebrow">Session review</p><h2>What happened in my session?</h2></div><div class="agent-evidence">
+<small>Parked session / Event timeline</small>
+<div class="timeline"><span class="stop">Start</span><button class="stop" data-event="warning" aria-pressed="true">Warning</button><button class="stop" data-event="pause" aria-pressed="false">Pause</button><span class="stop">End</span></div>
+<div aria-live="polite"><small id="event-time">00:08 Â· Warning</small><h3 id="event-title">Drowsiness observed</h3><p class="sub" id="event-detail">Eyes closed for 2 seconds.</p></div></div></article>
+<article class="agent-panel" id="analytics"><div><p class="eyebrow">Personal trends</p><h2>Has this happened before?</h2></div><div class="agent-evidence">
+<small>Eye-closure warnings by session</small>
+<button class="session-count" data-session="0" aria-pressed="false" style="--width:0%">Session 1<i></i><b>0</b></button>
+<button class="session-count" data-session="1" aria-pressed="false" style="--width:100%">Session 2<i></i><b>2</b></button>
+<button class="session-count" data-session="2" aria-pressed="true" style="--width:50%">This session<i></i><b>1</b></button>
+<h3>Two of three sessions.</h3><p class="sub" id="session-detail" aria-live="polite">This session recorded one eye-closure warning at 00:08.</p></div></article>
+<article class="agent-panel"><div><p class="eyebrow">Evidence-backed report</p><h2>Can you put that in a report?</h2></div><div class="agent-evidence"><small>Private report / Excerpt</small><h3>One warning. One pause.</h3><p class="sub">Eye closure lasted 2 seconds. Later, an obstructed view paused monitoring.</p><button class="pill" id="open-report">Open sample report â†—</button></div></article>
+<div class="agent-pagination"><span>Explore the agent</span><div><button data-chapter="0">Session</button><button data-chapter="1">Trends</button><button data-chapter="2">Report</button></div></div>
+<div class="agent-progress"></div></div></section>
+<dialog class="report" aria-labelledby="report-title"><form method="dialog"><button autofocus>Close report</button></form><p class="eyebrow" style="margin-top:32px">RAFIQ Agent Â· Sample report</p><h2 id="report-title">Parked session review</h2><p class="sub">Select a finding to inspect its source.</p>
+<details><summary>One warning and one monitoring pause</summary><p>Parked session, 00:08 â€” sustained eye closure for 2 s. At 00:16 an obstructed camera view paused monitoring.</p></details>
+<details><summary>Two of three sessions included a warning</summary><p>Eye-closure warning counts were 0 in session 1, 2 in session 2, and 1 in the parked session. Two counts exceed zero.</p></details>
+<p class="sub">These illustrative counts describe the sample sessions. They do not establish driving risk.</p></dialog><section class="driver-film" aria-label="The RAFIQ film" hidden>
+  <div class="film-screen">
+    <img class="film-poster" alt="A driver sits in a parked car at dusk." width="1344" height="693">
+    <button class="pill film-play" type="button"><span aria-hidden="true">▷</span> Watch the RAFIQ film</button>
+    <video hidden controls playsinline preload="none" aria-label="The RAFIQ film"></video>
+  </div>
+</section>
+<section class="join-ending" aria-labelledby="join-title">
+  <h2 id="join-title">Your drive.<br>Your story.</h2>
+  <p>Review the moments that mattered, privately.</p>
+  <a class="pill join-action" href="/sign-up">Join RAFIQ <span aria-hidden="true">→</span></a>
+</section>
+<dialog class="report" id="signup-preview" aria-labelledby="signup-title">
+  <h2 id="signup-title">Join RAFIQ</h2>
+  <p class="sub">Driver registration opens on the live RAFIQ website.</p>
+  <form method="dialog" style="margin-top:24px"><button autofocus>Back to the preview</button></form>
+</dialog>
+</main><footer><span class="model-credit">Robot adapted from <a href="https://sketchfab.com/3d-models/miibot-3d-model-7606b66321934033a5dcfecf0f7925e5">Miibot by itsmejhade</a> Â· <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> Â· RAFIQ materials and mark</span><a href="#top">Back to the lens â†‘</a></footer>
+<script src="agent/scroll.js"></script>
+<script>
+const select = selector => document.querySelector(selector);
+const story=select('.story'), stage=select('.stage'), intro=select('.intro'), lens=select('.lens'), photo=select('.photo');
+const shade=select('.shade'), caption=select('.scene-caption'), warning=select('.warning'), pause=select('.pause'), hint=select('.scrollhint');
+const staticMode=matchMedia('(max-width:700px),(max-height:470px),(prefers-reduced-motion:reduce)');
+const clamp=n=>Math.min(1,Math.max(0,n));
+const obstructed=select(".obstructed");
+const sceneImage=select(".scene-image");
+let lastRadius;
+function draw(p,staticView){
+  if(staticView){
+    [intro,lens,photo,obstructed,shade,caption,warning,pause,hint].forEach(el=>el.removeAttribute('style'));
+    lastRadius=undefined;intro.inert=false;
+    return;
+  }
+
+  const reveal=clamp((p-.10)/.47), fade=clamp(p/.27);
+  intro.style.opacity=1-fade;intro.style.transform='translateY('+(-fade*90)+'px)';intro.inert=fade===1;
+  hint.style.opacity=1-clamp(p/.10);
+  lens.style.transform='scale('+(1+.19*reveal)+')';
+  const radius=Math.max(.006,reveal*reveal);
+  if(radius!==lastRadius){
+    photo.style.visibility=reveal?'visible':'hidden';
+    photo.style.transform='translate(-50%,-50%) scale('+radius+')';
+    sceneImage.style.transform='translate(-74%,-44%) scale('+(1/radius)+')';
+    lastRadius=radius;
+  }
+  shade.style.opacity=clamp((p-.24)/.3);caption.style.opacity=clamp((p-.32)/.18);
+  warning.style.opacity=clamp((p-.48)/.10)*(1-clamp((p-.73)/.05));
+  pause.style.opacity=clamp((p-.78)/.06);
+  obstructed.style.opacity=clamp((p-.71)/.14);
+}
+trackScroll(story,stage,staticMode,draw);
+select('.intro a').onclick=e=>{
+  e.preventDefault();
+  const target=staticMode.matches?select('.static-scene').offsetTop:story.offsetTop+.61*(story.offsetHeight-stage.offsetHeight);
+  window.scrollTo({top:target,behavior:staticMode.matches?'instant':'smooth'});
+};
+select('nav a').onclick=e=>{e.preventDefault();select('.intro a').click()};
+function bindChoices(selector,choose){
+  const buttons=[...document.querySelectorAll(selector)];
+  buttons.forEach(button=>button.onclick=()=>{buttons.forEach(b=>b.setAttribute('aria-pressed',String(b===button)));choose(button)});
+}
+bindChoices('[data-event]',button=>{
+  const paused=button.dataset.event==='pause';
+  select('#event-time').textContent=paused?'00:16 Â· Pause':'00:08 Â· Warning';
+  select('#event-title').textContent=paused?'Monitoring paused':'Drowsiness observed';
+  select('#event-detail').textContent=paused?'Camera view became obstructed. Observation paused at this point.':'Eyes closed for 2 seconds.';
+});
+// Set the released film and English WebVTT URLs together when both are published.
+const filmRelease={video:'', captions:'', poster:'images/generated-1.png'};
+if(filmRelease.video && filmRelease.captions){
+  const film=select('.driver-film'), player=film.querySelector('video');
+  const poster=film.querySelector('img'), play=film.querySelector('button');
+  poster.src=filmRelease.poster;
+  player.poster=filmRelease.poster;
+  player.src=filmRelease.video;
+  const captions=document.createElement('track');
+  Object.assign(captions,{kind:'captions',srclang:'en',label:'English',src:filmRelease.captions,default:true});
+  player.append(captions);
+  film.hidden=false;
+  play.onclick=()=>{
+    poster.hidden=play.hidden=true;
+    player.hidden=false;
+    player.focus();
+    player.play().catch(()=>{/* Native controls remain available. */});
+  };
+}
+if(location.protocol==='file:'){
+  select('.join-action').onclick=event=>{
+    event.preventDefault();
+    select('#signup-preview').showModal();
+  };
+}
+</script>
+<script src="agent/gsap.min.js"></script><script src="agent/ScrollTrigger.min.js"></script><script src="agent/three.min.js"></script><script src="agent/GLTFLoader.js"></script><script src="agent/robot.js"></script><script src="agent/turntable.js"></script><script src="agent/chapter.js"></script></html>
