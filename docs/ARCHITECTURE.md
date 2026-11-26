@@ -933,8 +933,8 @@ flowchart TB
 | Environment | Runtime and release conditions |
 | --- | --- |
 | Development | Run the frontend, API, worker, and R with versioned fixtures and isolated development credentials. Restore `package-lock.json`, `uv.lock`, and `renv.lock` during implementation and record runtime, image, model, ONNX and WebAssembly details in reproducible-build evidence. |
-| Preview and validation | Use an isolated deployment with synthetic or approved validation data, credentials, grants, webhook settings and storage namespaces. Exercise compatible migrations, browser-to-API connectivity and smoke tests. |
-| Campus demo, 15 December 2026 | Target a stationary warning, camera pause, and summary with benchmark and gate evidence. Use the Vercel frontend and an attended local API/worker or rehearsed Render Free demo arrangement. Test interruption and job recovery. |
+| Preview and validation | Use isolated configuration for previews. For shared Phase 0 HTTPS validation, use Vercel Hobby for the browser and Render Free for FastAPI. The attended local Python/R worker claims jobs from isolated Supabase PostgreSQL over TLS and has no inbound listener. Use separate validation credentials, grants, Clerk development identities, webhook settings and storage namespaces. Verify compatible migrations, browser-to-API connectivity and synthetic fixture processing. [Phase 0 hosting runbook](PHASE_0_HOSTING.md) |
+| Campus demo, 15 December 2026 | Target a stationary warning, camera pause, and summary with benchmark and gate evidence. Reuse the isolated hosted validation setup after rehearsal. Keep the full local fixture available for an attended fallback. Test interruption and job recovery. |
 | Public | Qualify always-on API and worker hosting, the selected Vercel frontend, production identity, Supabase, private media capacity, and independent recovery at zero project cost. Oracle Always Free is a hosting candidate. Keep a failed gate open with the measured result and its original target. |
 
 ```mermaid

@@ -83,6 +83,8 @@ Use [PRODUCT](PRODUCT.md) and the approved [PRD](PRD.md) for intent, terminology
 
 **Decisions to carry into specs.** Exact runtime and artifact pins, environment names, probes and entry points, compatible PostgreSQL version and extensions, application roles, safe CI and registry access, data/backup ownership, alert thresholds and production provider readiness. Track open items with owner and required evidence. **Exit evidence** — clean install and fixture execution, isolated deployed handoff, current CI proof, design inventory and signed-off test plan. [Git workflow](GIT_WORKFLOW.md#19-recommended-implementation-order) · [API open decisions](API.md#18-open-questions-and-decisions-requiring-approval)
 
+For isolated HTTPS validation, follow the [zero-cost Phase 0 hosting runbook](PHASE_0_HOSTING.md) for the attended API and worker setup, provider quotas and smoke checks.
+
 ### Phase 1 — Public entry, driver identity and preferences
 
 **Days 1–6 · Product UI and identity.** Make verified self-service and recovery usable for adults without an institutional prerequisite. Render the shared design system in the public site and carry the signed-in driver into a private, controlled-use app. Modules M01/M10. Requirements FR-01–FR-04, NFR-04/NFR-05 and J1. Pen P01–P08, D19, D20 and D22 account/consent entry. [PRD accounts](PRD.md#51-accounts-privacy-and-readiness) · [TRD authentication](TRD.md#4-authentication-authorization-and-security)
