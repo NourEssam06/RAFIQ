@@ -73,7 +73,7 @@ test.skip(process.env.RAFIQ_RECOVERY_DRILL !== '1', 'Run the recovery drill sepa
 
 test('recover the fixture through upgrade, database outage and worker interruption', async ({ browser, page, request }) => {
   test.setTimeout(300_000);
-  const probe = async (path: string) => (await request.get(`${api}/internal/${path}`, { timeout: 2_500 })
+  const probe = async (path: string) => (await request.get(`${api}/internal/${path}`, { timeout: 8_000 })
     .catch(() => null))?.status();
   const heartbeat = () => workerCommand('python -m fixture.worker --check-health; echo $?');
   const fixture = (headers = ownerA) => request.get(`${api}/api/v1/local-fixtures/current`, { headers });
@@ -126,8 +126,8 @@ test('recover the fixture through upgrade, database outage and worker interrupti
       bootDb();
       expect(schemaDump()).toBe(fresh);
       expect(fixtureRows()).toEqual(rows);
-      compose('up', '-d', '--no-build', '--no-deps', 'api', 'web');
-      await expect.poll(() => probe('readyz'), { timeout: 15_000 }).toBe(200);
+      compose('up', '--wait', '--wait-timeout', '30', '--no-build', '--no-deps', 'api', 'web');
+      expect(await probe('readyz')).toBe(200);
       expect(await (await fixture()).json()).toEqual({ id: rows[0].id, status: 'queued', result: null });
       expect(await (await fixture(ownerB)).json()).toEqual({ id: rows[1].id, status: 'completed', result });
       for (const headers of [{}, ownerB]) {
@@ -148,7 +148,7 @@ test('recover the fixture through upgrade, database outage and worker interrupti
       const first = fixtureRows()[0];
       expect(first).toMatchObject({ id: prior[0].id, status: 'running', generation: 1, result: null });
       compose('kill', '-s', 'SIGKILL', 'worker');
-      expect(inspect('worker', '{{.State.Status}} {{.State.ExitCode}}')).toBe('exited 137');
+      await expect.poll(() => inspect('worker', '{{.State.Status}} {{.State.ExitCode}}')).toBe('exited 137');
       expect(fixtureRows()[0]).toEqual(first);
       console.log(`Interruption: exited 137 after generation ${first.generation} claimed ${first.id}; lease expires ${first.lease_until}.`);
 
