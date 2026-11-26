@@ -4,7 +4,7 @@
 
 ## 1. Overview and objectives
 
-Keep `master` reviewable and safe to release. Deliver one coherent change per pull request, run repeatable checks on GitHub, and release a verified revision only after the applicable RAFIQ product gates pass. Start with a documentation check and add application gates as executable code and fixtures land.
+Keep `master` reviewable and safe to release. Deliver one coherent change per pull request, run repeatable checks on GitHub, and release a verified revision only after the applicable RAFIQ product gates pass. Start with source checks and add executable fixture suites to the single gate as they land.
 
 The daily loop, branch quick reference, and repository health rules follow the structure of the supplied Pravaha handbook. RAFIQ's merge and release decisions follow its own architecture and qualification needs. [Pravaha workflow reference](https://github.com/Monolithic-Dev/Pravaha/blob/main/docs/GIT_WORKFLOW.md)
 
@@ -150,12 +150,13 @@ Use standard GitHub-hosted `ubuntu-24.04` runners. They isolate jobs and offer f
 | Job and trigger | Setup, execution and environment | Output, failure and merge effect |
 | --- | --- | --- |
 | **Source** · PR into `master` and push to `master` | Git, Bash and pinned checkout. Find the tested diff, check whitespace, and check the core documents exist. Add executable OpenAPI/JSON Schema and link checks when the contract validator lands. `contents: read`, no secrets or external runtime configuration. | Logs identify failing paths, fixtures or contract validation. Required through the gate on every event. |
-| **Web** · same events, after web scaffold | Node and npm from TRD, `package-lock.json`, Playwright Chromium and local fixtures. Install, lint, type-check, build and run browser tests. Supply only synthetic configuration via the checked-in fixture bootstrap. `contents: read`, no secrets. | Build and test summaries. Missing scripts, stale lock, build error or test failure fails the gate. Optional sanitized failure traces later, with short retention. |
-| **Server, database and R** · same events, after server scaffold | CPython, uv, pinned R and renv, Linux report libraries/fonts and disposable PostgreSQL matching qualified Supabase behavior. Restore locks, run pytest and R fixtures. Local migration and runtime-role connection settings come from the fixture script. `contents: read`, no hosted credentials. | API/worker, migration, authorization, R and export fixture results. Setup, lock, migration or test failures fail the gate. |
+| **Local fixture smoke** · same events | Pinned Node and npm, lockfile-based npm cache, Playwright Chromium and a disposable Compose stack from `.env.fixture.example`. `contents: read`, no hosted credentials. | Existing browser, API, PostgreSQL, worker, R, recovery and render checks. Failure blocks the gate. |
+| **Dedicated web** · same events, as expanded checks land | Node and npm from TRD, `package-lock.json`, Playwright Chromium and local fixtures. Install, lint, type-check, build and run browser tests. Supply only synthetic configuration via the checked-in fixture bootstrap. `contents: read`, no secrets. | Build and test summaries. Missing scripts, stale lock, build error or test failure fails the gate. Optional sanitized failure traces later, with short retention. |
+| **Dedicated server, database and R** · same events, as expanded checks land | CPython, uv, pinned R and renv, Linux report libraries/fonts and disposable PostgreSQL matching qualified Supabase behavior. Restore locks, run pytest and R fixtures. Local migration and runtime-role connection settings come from the fixture script. `contents: read`, no hosted credentials. | API/worker, migration, authorization, R and export fixture results. Setup, lock, migration or test failures fail the gate. |
 | **Dependency review** · PR only after manifests land | GitHub dependency graph and pinned dependency-review action with `contents: read`. No comment-write permission or token beyond the job token. | New recognized high/critical vulnerabilities or scan failure block through the PR gate. Existing advisories and uncovered ecosystems require separate triage. |
 | **RAFIQ CI gate** · all configured CI events | Lightweight job with `permissions: {}`. Explicitly checks upstream results, including which job may skip on push. | The one required merge check. Missing, failed, canceled or unexpectedly skipped upstream jobs fail it. A canceled workflow or conflicted PR still needs a fresh valid run. |
 
-Source, web, server and dependency review run in parallel when present. The gate waits for them. Run every active application suite even for ordinary documentation changes initially. This keeps cross-component changes and required check behavior predictable. Use in-workflow change detection only if measured run times justify it. A later detector must treat unidentified changes, shared contracts, lockfiles and workflow edits conservatively and supply explicit expected job outcomes to the gate. Keep workflow event path filters out of required CI. [Required-check troubleshooting](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/troubleshooting-required-status-checks)
+Source and the local fixture suite run in parallel. Run future independent web, server and dependency review jobs in parallel when they land. The gate waits for them. Run every active application suite even for ordinary documentation changes initially. This keeps cross-component changes and required check behavior predictable. Use in-workflow change detection only if measured run times justify it. A later detector must treat unidentified changes, shared contracts, lockfiles and workflow edits conservatively and supply explicit expected job outcomes to the gate. Keep workflow event path filters out of required CI. [Required-check troubleshooting](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/troubleshooting-required-status-checks)
 
 The initial web suite uses a short synthetic camera/offline and privacy path, representative roles and accessible states from J1–J8 as each journey lands. The server suite checks migrations on empty and previously released schemas, preservation of retained rows, RLS under the actual runtime role, signed callback fixtures, durable receipts, worker lease races, publication and revocation, R reproducibility, and export parity as applicable. Include Python-to-R fixture execution in pytest as well as R method tests. Keep real identity, emergency delivery, MCP compatibility with a deployed reference client, supported Windows/Chrome evidence, and load/recovery measurements in isolated qualification. [API §15](docs/API.md#15-api-testing-and-contract-validation) · [Architecture §15](docs/ARCHITECTURE.md#15-testing-and-observability-architecture) · [TRD §8](docs/TRD.md#8-measurable-acceptance-and-release-gates)
 
@@ -198,64 +199,25 @@ flowchart TD
 
 | File | When to adopt | Events and execution |
 | --- | --- | --- |
-| `.github/workflows/ci.yml` | Bootstrap now. Replace with the application form after both scaffolds land, or add each ready job and its gate assertion in the same PR. | PRs targeting `master` and pushes to `master`. Uses read-only checkout and a stable required check. No provider environment or secrets. |
+| `.github/workflows/ci.yml` | Bootstrap with source and the executable local fixture suite. Add each new job and its gate assertion together. | PRs targeting `master` and pushes to `master`. Uses read-only checkout and a stable required check. No provider environment or secrets. |
 | `.github/workflows/deploy-production.yml` | After the attended public release path is rehearsed and the prerequisites below are complete. | Manual dispatch from `master`. Preflight → protected `production` job → orchestrated migration, release, smoke and evidence. Failure stops promotion or starts qualified recovery according to deployment state. |
 
 Keep preview and demo deploys operator-driven initially. GitHub's built-in Dependabot and secret scanning cover the initial scheduled security needs. A tag records a successful release. It does not deploy. Add workflow linting with a pinned tool when workflow maintenance warrants it.
 
 ### Bootstrap `ci.yml`
 
-The bootstrap uses the tracked repository and needs no application scaffolding. On a PR, normal checkout tests the synthetic merge commit and checks its diff against its first parent. On a push, it checks the entire pushed change against GitHub's previous tip. The fallback handles a zero or unavailable previous tip. Opening or updating a PR starts a fresh run. The newest run for a PR or branch supersedes its older run.
+[RAFIQ CI](../.github/workflows/ci.yml) runs for PRs into `master` and pushes to `master`. On a PR, checkout tests GitHub's synthetic merge commit and the source job checks its diff against the first parent. On a push it checks the full change since the previous tip and uses the empty tree when that tip is unavailable. Source also checks that the core documents are present and nonempty.
 
-```yaml
-name: RAFIQ CI
-'on':
-  pull_request:
-    branches: [master]
-  push:
-    branches: [master]
-permissions:
-  contents: read
-concurrency:
-  group: rafiq-ci-${{ github.ref }}
-  cancel-in-progress: true
-jobs:
-  source:
-    name: RAFIQ source
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Check the tested diff and core documents
-        env:
-          BEFORE: ${{ github.event.before }}
-        run: |
-          if [[ "$GITHUB_EVENT_NAME" == pull_request ]]; then
-            base=$(git rev-parse HEAD^1)
-          elif [[ -n "$BEFORE" ]] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
-            base=$BEFORE
-          else
-            base=$(git hash-object -w -t tree /dev/null)
-          fi
-          git diff --check "$base" HEAD --
-          for doc in PRD TRD ARCHITECTURE API EXPERIENCE DESIGN; do
-            test -s "docs/$doc.md"
-          done
-  gate:
-    name: RAFIQ CI gate
-    if: ${{ always() }}
-    needs: [source]
-    permissions: {}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - env:
-          SOURCE: ${{ needs.source.result }}
-        run: test "$SOURCE" = success
-```
+The workflow calls the [local fixture suite](../.github/workflows/local-fixture.yml) on both events. It uses `.env.fixture.example` for disposable browser, API, database, worker, R, recovery and render checks. Source and fixture have read-only repository contents access and checkout clears credentials. The gate runs without repository permissions and requires both jobs to succeed. It reports both results even if a prerequisite fails or is skipped. Add the expected result for any new prerequisite in the same PR that adds the job.
+
+#### Bootstrap and enforcement evidence
+
+1. Request an independent review of the bootstrap PR. Record its head SHA, the tested merge SHA from the source log, the reviewer's approval and the check run. Squash merge the exact reviewed candidate and record the resulting `master` SHA and gate run before requiring the check.
+2. After the PR and push checks pass, the authorized repository operator adopts the settings in [Merge strategy and branch protection](#8-merge-strategy-and-branch-protection). Require the exact `RAFIQ CI gate` check from GitHub Actions and enable strict up-to-date checks. Record the active ruleset and squash settings.
+3. Open two disposable PRs from the protected baseline and leave them unmerged. In one, add trailing whitespace to a changed line to fail Source. In the other, set the Source job to `if: ${{ false }}`. Record the prerequisite and gate conclusions and the merge block reported by GitHub for each. Close both proof PRs after recording the results.
+4. For a fork PR, record the candidate SHA and workflow run. Inspect the job setup for read-only token permissions, check that the fixture used `.env.fixture.example` and verify that the workflow grants no deployment permissions and uses no hosted credentials. Record any GitHub approval needed to start the run.
+
+Link the evidence in [issue #10](https://github.com/alisameh05/RAFIQ/issues/10). Use the [implementation guide's evidence fields](IMPLEMENTATION_GUIDE.md#5-traceability-and-release-evidence).
 
 ### Application `ci.yml`
 
@@ -595,8 +557,8 @@ Pop-Location
 
 ## 19. Recommended implementation order
 
-1. Adopt the handbook and trial the documentation-only check. Confirm owner and reviewer coverage and activate the merge rules.
-2. Add web and server scaffolds with reproducible lockfiles and synthetic local fixtures. Add the CI jobs as their executable prerequisites pass on hosted runners. Maintain a single required gate across the transition.
+1. Confirm owner and independent reviewer coverage. Run the bootstrap with source checks and the existing synthetic fixture suite, then activate the merge rules after verifying both the PR and resulting `master` check.
+2. Expand the web and server checks as their executable prerequisites pass on hosted runners. Add each job and the corresponding gate assertion together.
 3. Rehearse the attended validation and demo release with approved data, including fallback and reproducible evidence. Keep public signup and live provider capabilities gated by their respective criteria.
 4. Qualify public hosts, data lifecycle, recovery and required external integrations under the zero-budget constraint. Rehearse promotion and rollback through the same release sequence.
 5. Automate the proven operator sequence with the guarded release workflow. Revisit faster affected-path checks, risk-based additional reviewers and more deployment automation only if usage and evidence justify the maintenance.

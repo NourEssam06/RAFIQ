@@ -1,0 +1,72 @@
+name: RAFIQ CI
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+permissions: {}
+
+concurrency:
+  group: rafiq-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source:
+    name: RAFIQ source
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check the tested diff and core documents
+        shell: bash
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == pull_request ]]; then
+            base=$(git rev-parse HEAD^1)
+          elif [[ -n "$BEFORE" ]] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            base=$BEFORE
+          else
+            base=$(git hash-object -w -t tree /dev/null)
+          fi
+          printf 'Checking %s..%s\n' "$base" "$(git rev-parse HEAD)"
+          git diff --check "$base" HEAD --
+          for doc in PRD TRD ARCHITECTURE API EXPERIENCE DESIGN; do
+            if [[ ! -s "docs/$doc.md" ]]; then
+              echo "::error::Missing or empty core document docs/$doc.md"
+              exit 1
+            fi
+          done
+
+  fixture:
+    name: Local fixture smoke
+    permissions:
+      contents: read
+    uses: ./.github/workflows/local-fixture.yml
+
+  gate:
+    name: RAFIQ CI gate
+    if: ${{ always() }}
+    needs: [source, fixture]
+    permissions: {}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require successful source and fixture checks
+        shell: bash
+        env:
+          SOURCE_RESULT: ${{ needs.source.result }}
+          FIXTURE_RESULT: ${{ needs.fixture.result }}
+        run: |
+          printf 'Source: %s\nFixture: %s\n' "${SOURCE_RESULT:-missing}" "${FIXTURE_RESULT:-missing}"
+          if [[ "$SOURCE_RESULT" != success || "$FIXTURE_RESULT" != success ]]; then
+            echo "::error::Source and fixture checks must both succeed."
+            exit 1
+          fi

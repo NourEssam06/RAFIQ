@@ -44,6 +44,8 @@ filters.addEventListener('submit', (event) => {
 
 opener.addEventListener('click', () => {
   dialog.returnValue = '';
+  // The modal restores focus to the active element when it closes.
+  opener.focus();
   dialog.showModal();
 });
 
@@ -52,5 +54,4 @@ dialog.addEventListener('close', () => {
     filters.reset();
     refreshSummary();
   }
-  opener.focus();
 });

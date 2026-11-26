@@ -1,17 +1,7 @@
 name: Local fixture smoke
 
 on:
-  push:
-    paths:
-      - .github/workflows/local-fixture.yml
-      - .env.fixture.example
-      - .gitignore
-      - compose.yaml
-      - ops/postgres/**
-      - ops/fixture-recovery/**
-      - ops/fixture-render/**
-      - server/**
-      - web/**
+  workflow_call:
 
 permissions:
   contents: read
@@ -30,6 +20,8 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '24.22.3'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
       - name: Restore browser tooling and typecheck
         working-directory: web
         run: |
