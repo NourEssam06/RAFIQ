@@ -215,6 +215,8 @@ For isolated HTTPS validation, follow the [zero-cost Phase 0 hosting runbook](PH
 
 ## 4. Pen design and screen ownership
 
+The [shared component handoff](design/SHARED_COMPONENT_HANDOFF.md) records the canvas inventory, asset decisions, browser fixture and FND-03 review evidence.
+
 Use the [shared RAFIQ canvas](https://app.pen.dev/s/fZ1Fr2k_GIRpAwvABYPvw8LcwmOajmza6vjtx0ivitU) for visual handoff. The node IDs below are anchors from [the local RAFIQ canvas](<../Pen Design/RAFIQ.pen>) for the matching named groups. The listed nodes are starting frames. Walk the whole group, variants and component boards before marking the screen done. A Pen board is a design reference. Browser implementation must separately verify real interactions, loading and errors, responsive reflow, focus, state boundaries and accessibility.
 
 **Shared boards and assets.** Review design foundations `v3WGH`, desktop composition `kSXKr`, mobile composition `KBsd3`, controls and usage `giojv`, and motion components `GtBsN`. Use the exported [tokens](<../Pen Design/tokens.json>), [CSS variables](<../Pen Design/variables.css>) and [Tailwind mapping](<../Pen Design/tailwind.css>) after resolving discrepancies against approved Pen and DESIGN. Port the [scroll prototype](<../Pen Design/RAFIQ Scroll Prototype.html>) and [Miibot asset](<../Pen Design/miibot_3d_model.glb>) with static and turntable fallbacks. Use the [brand assets and motion notes](<../Pen Design/brand/brand-logo-direction.md>) and [loader handoff](<../Pen Design/RAFIQ-loader.md>) for logo, favicon, scanner and compact arc with their static equivalents and notices. Confirm load time, pointer and keyboard handling, and motion stopping on completion. Retain updated screen references whenever a required UI state changes.

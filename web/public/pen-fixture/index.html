@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shared component preview | RAFIQ</title>
+  <link rel="stylesheet" href="fixture.css">
+  <script src="fixture.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <strong class="wordmark">RAFIQ</strong>
+      <nav aria-label="Preview workspaces">
+        <a href="#content">Driver</a>
+        <a href="#administration">Administration</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" id="content" tabindex="-1">
+    <h1>Shared component preview</h1>
+    <p class="intro">Review driver and administration patterns with synthetic session data.</p>
+
+    <section class="workspace" aria-labelledby="driver-heading">
+      <header class="workspace-header">
+        <h2 id="driver-heading">Driver workspace</h2>
+        <nav aria-label="Driver workspace">
+          <a href="#sessions">Sessions</a>
+          <a href="#personal-overview">Personal Overview</a>
+        </nav>
+      </header>
+      <div class="workspace-content">
+        <div class="driver-grid">
+          <section aria-labelledby="sessions">
+            <h3 id="sessions" tabindex="-1">Sessions</h3>
+            <form id="session-filters">
+              <label for="session-period">Session period</label>
+              <div class="actions">
+                <select id="session-period" name="period">
+                  <option value="week">Last 7 days</option>
+                  <option value="month">Last 30 days</option>
+                </select>
+                <button class="primary" type="submit">Refresh summary</button>
+                <button id="open-clear" type="button">Clear selection</button>
+              </div>
+            </form>
+            <div class="status-row">
+              <span class="status-icon is-ready" id="summary-icon" aria-hidden="true">✓</span>
+              <p id="summary-status" role="status">Session summary ready for the last 7 days.</p>
+            </div>
+            <details>
+              <summary>Clip availability</summary>
+              <p>The example clip expired. The incident record is still available.</p>
+            </details>
+          </section>
+          <section aria-labelledby="personal-overview">
+            <h3 id="personal-overview" tabindex="-1">Personal Overview</h3>
+            <figure>
+              <figcaption>Recorded warning counts</figcaption>
+              <p class="muted" id="chart-scope">Last 7 days · 5 synthetic sessions</p>
+              <p class="muted">Bar scale: 0 to 12 warnings</p>
+              <table>
+                <caption class="visually-hidden">Recorded warning counts by behavior</caption>
+                <thead><tr><th scope="col">Behavior</th><th scope="col">Count</th></tr></thead>
+                <tbody>
+                  <tr id="drowsiness"><th scope="row">Drowsiness</th><td><span>3</span><progress max="12" value="3" aria-hidden="true"></progress></td></tr>
+                  <tr id="distraction"><th scope="row">Distraction</th><td><span>1</span><progress max="12" value="1" aria-hidden="true"></progress></td></tr>
+                </tbody>
+              </table>
+            </figure>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="workspace" aria-labelledby="administration">
+      <header class="workspace-header">
+        <h2 id="administration" tabindex="-1">Administration</h2>
+        <nav aria-label="Administration workspace">
+          <a href="#service-health">Service Health</a>
+          <a href="#release-readiness">Release Readiness</a>
+        </nav>
+      </header>
+      <div class="workspace-content admin-grid">
+        <section aria-labelledby="service-health">
+          <h3 id="service-health" tabindex="-1">Service Health</h3>
+          <div class="status-row"><span class="status-icon is-ready" aria-hidden="true">✓</span><p><strong>Operational</strong> · Synthetic status check</p></div>
+        </section>
+        <section aria-labelledby="release-readiness">
+          <h3 id="release-readiness" tabindex="-1">Release Readiness</h3>
+          <div class="status-row"><span class="status-icon is-pending" aria-hidden="true">◷</span><p><strong>Pending</strong> · Accessibility review</p></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="clear-dialog" aria-labelledby="clear-heading" aria-describedby="clear-description">
+    <h2 id="clear-heading">Clear this selection?</h2>
+    <p id="clear-description">This resets the session period to the last 7 days.</p>
+    <form class="actions dialog-actions" method="dialog">
+      <button value="cancel" autofocus>Cancel</button>
+      <button class="primary" value="clear">Clear selection</button>
+    </form>
+  </dialog>
+</body>
+</html>
