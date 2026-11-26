@@ -9,6 +9,7 @@ on:
       - compose.yaml
       - ops/postgres/**
       - ops/fixture-recovery/**
+      - ops/fixture-render/**
       - server/**
       - web/**
 
@@ -83,6 +84,19 @@ jobs:
           curl --fail --silent --show-error \
             -H 'Authorization: Bearer local-driver-a' http://127.0.0.1:8000/api/v1/local-fixtures/current \
             | jq -e '.status == "completed" and .result == {"version":1,"method":"synthetic-mean-v1","count":3,"mean":4}'
+      - name: Render and compare PDF and Word from the persisted fixture
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libreoffice-writer poppler-utils fontconfig fonts-dejavu-core
+          docker compose --profile render build renderer
+          bash ops/fixture-render/smoke.sh
+      - name: Upload synthetic render evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: synthetic-render-fixture
+          path: logs/render-fixture/
+          if-no-files-found: error
+          retention-days: 14
       - name: Stop the smoke stack before the recovery drill
         run: docker compose down
       - name: Verify populated upgrade, probes, drain, reclaim and browser recovery

@@ -1,16 +1,37 @@
 FROM ghcr.io/astral-sh/uv:0.13.9@sha256:d3b601f0c7b118bc1753febf7c41cc80981df678445e0254284eecf84db79a7d AS uv
 
-FROM python:3.14.10-slim-bookworm@sha256:e60ad028afdcdd14772a3d46decf0eaf616720f9102aeb4397a2045ff6718c3d AS api
+FROM python:3.14.10-slim-bookworm@sha256:e60ad028afdcdd14772a3d46decf0eaf616720f9102aeb4397a2045ff6718c3d AS python-base
 COPY --from=uv /uv /usr/local/bin/uv
 WORKDIR /app
 ENV PATH="/app/.venv/bin:${PATH}" UV_PYTHON_DOWNLOADS=never PYTHONDONTWRITEBYTECODE=1
 COPY pyproject.toml uv.lock ./
+
+FROM python-base AS api
 RUN uv sync --locked --no-dev
 COPY alembic.ini ./
 COPY migrations ./migrations
 COPY fixture ./fixture
 USER 10001:10001
 CMD ["uvicorn", "fixture.api:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
+
+FROM python-base AS renderer
+# Pin the full native dependency resolution to the signed Bookworm archives.
+RUN printf '%s\n' \
+      'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/20261120T000000Z/ bookworm main' \
+      'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian-security/20261120T000000Z/ bookworm-security main' \
+      > /etc/apt/sources.list.d/renderer.list \
+    && rm /etc/apt/sources.list.d/debian.sources \
+    && apt-get -o Acquire::Retries=3 update \
+    && apt-get -o Acquire::Retries=3 install -y --no-install-recommends \
+      fontconfig=2.14.1-4 fonts-dejavu-core=2.37-6 \
+      libpango-1.0-0=1.50.12+ds-1 libpangoft2-1.0-0=1.50.12+ds-1 \
+      libharfbuzz0b=6.0.0+dfsg-3 libharfbuzz-subset0=6.0.0+dfsg-3 \
+      libfreetype6 libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/* \
+    && uv sync --locked --no-dev --group render
+COPY fixture ./fixture
+USER 10001:10001
+ENTRYPOINT ["python", "-m", "fixture.render"]
 
 FROM rocker/r-ver:4.6.2@sha256:b344cf44c8cfb787d9e091cb88a9694fbc771e7600edaa7b545030babfc05bf3 AS worker
 COPY --from=uv /uv /usr/local/bin/uv
