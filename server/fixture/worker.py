@@ -1,9 +1,11 @@
 import json
 import logging
+import signal
 import subprocess
 import sys
 import time
 from pathlib import Path
+from threading import Event
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -13,7 +15,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from fixture.database import engine_for, schema_ready
 
 HEARTBEAT = Path("/tmp/rafiq-fixture-worker.heartbeat")
-METHOD = Path(__file__).resolve().parents[1] / "r" / "synthetic_mean.R"
+R_SCRIPT = Path(__file__).resolve().parents[1] / "r" / "synthetic_mean.R"
 LEASE_SECONDS = 30
 R_TIMEOUT_SECONDS = 10
 CLAIM = text("""
@@ -47,7 +49,7 @@ class MeanResult(BaseModel):
 
 def calculate(samples: list[int]) -> MeanResult:
     process = subprocess.run(
-        ["Rscript", "--vanilla", str(METHOD)],
+        ["Rscript", "--vanilla", str(R_SCRIPT)],
         input=json.dumps({"version": 1, "method": "synthetic-mean-v1", "samples": samples}),
         text=True,
         capture_output=True,
@@ -55,12 +57,15 @@ def calculate(samples: list[int]) -> MeanResult:
         check=True,
     )
     result = MeanResult.model_validate_json(process.stdout)
-    if result.count != len(samples) or not min(samples) <= result.mean <= max(samples):
+    if samples != [2, 4, 6] or result.count != 3 or abs(result.mean - 4) > 0.000001:
         raise ValueError("R result is incompatible with the fixture input")
     return result
 
 
 def run_worker():
+    stopping = Event()
+    signal.signal(signal.SIGTERM, lambda *_: stopping.set())
+    signal.signal(signal.SIGINT, lambda *_: stopping.set())
     HEARTBEAT.unlink(missing_ok=True)
     engine = engine_for("worker")
     subprocess.run(
@@ -71,7 +76,7 @@ def run_worker():
         check=True,
         timeout=R_TIMEOUT_SECONDS,
     )
-    while True:
+    while not stopping.is_set():
         try:
             with engine.begin() as connection:
                 if not schema_ready(connection, "worker"):
@@ -79,7 +84,7 @@ def run_worker():
                 job = connection.execute(CLAIM, {"lease_seconds": LEASE_SECONDS}).mappings().first()
             HEARTBEAT.touch()
             if job is None:
-                time.sleep(0.5)
+                stopping.wait(0.5)
                 continue
 
             try:
@@ -102,7 +107,8 @@ def run_worker():
         except SQLAlchemyError:
             HEARTBEAT.unlink(missing_ok=True)
             logging.warning("Synthetic worker database operation unavailable")
-            time.sleep(1)
+            stopping.wait(1)
+    HEARTBEAT.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

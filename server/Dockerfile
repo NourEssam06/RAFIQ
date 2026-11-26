@@ -21,13 +21,12 @@ ENV PATH="/app/.venv/bin:${PATH}" UV_PYTHON_INSTALL_DIR=/opt/uv-python \
 COPY pyproject.toml uv.lock ./
 RUN uv sync --locked --no-dev
 COPY renv.lock ./
-RUN mkdir -p /opt/rafiq-r \
-    && (curl -fsSL https://cran.r-project.org/src/contrib/renv_1.3.1.tar.gz -o /tmp/rafiq-renv.tar.gz \
-      || curl -fsSL https://cran.r-project.org/src/contrib/Archive/renv/renv_1.3.1.tar.gz -o /tmp/rafiq-renv.tar.gz) \
-    && echo 'e16281908ddf0ed6f8f6f8ad3f2cc4788af6de04c1ab223517aa1cc9acb30731  /tmp/rafiq-renv.tar.gz' | sha256sum -c - \
-    && R CMD INSTALL --library=/opt/rafiq-r /tmp/rafiq-renv.tar.gz \
-    && Rscript --vanilla -e 'renv::restore(project="/app", library="/opt/rafiq-r", prompt=FALSE)' \
-    && rm /tmp/rafiq-renv.tar.gz
+COPY r/restore.R ./r/restore.R
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /opt/rafiq-r \
+    && Rscript --vanilla r/restore.R
 COPY fixture ./fixture
 COPY r ./r
 COPY tests ./tests

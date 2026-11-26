@@ -10,6 +10,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./ops/postgres:/docker-entrypoint-initdb.d:ro
+    networks: [data]
     healthcheck:
       test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-d", "rafiq", "-U", "postgres"]
       interval: 2s
@@ -20,6 +21,7 @@ services:
     build: { context: ./server, target: api }
     image: rafiq-fixture-api:local
     command: ["alembic", "upgrade", "head"]
+    networks: [data]
     environment:
       RAFIQ_MODE: local-fixture
       RAFIQ_MIGRATE_DATABASE_URL: ${RAFIQ_MIGRATE_DATABASE_URL:?use .env.fixture.example}
@@ -34,6 +36,10 @@ services:
       RAFIQ_API_DATABASE_URL: ${RAFIQ_API_DATABASE_URL:?use .env.fixture.example}
     ports: ["127.0.0.1:8000:8000"]
     init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    networks: [default, data]
     depends_on:
       migrate: { condition: service_completed_successfully }
     healthcheck:
@@ -45,6 +51,12 @@ services:
   worker:
     build: { context: ./server, target: worker }
     init: true
+    stop_grace_period: 20s
+    read_only: true
+    tmpfs: ["/tmp:size=16m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    networks: [data]
     environment:
       RAFIQ_MODE: local-fixture
       RAFIQ_WORKER_DATABASE_URL: ${RAFIQ_WORKER_DATABASE_URL:?use .env.fixture.example}
@@ -70,3 +82,7 @@ services:
 
 volumes:
   pgdata:
+
+networks:
+  data:
+    internal: true

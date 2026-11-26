@@ -12,7 +12,7 @@ docker compose --env-file .env.fixture.example up --build --wait --wait-timeout 
 docker compose --env-file .env.fixture.example ps -a
 ```
 
-The first build restores `web/package-lock.json` with npm, `server/uv.lock` with uv, and `server/renv.lock` with renv. Pin and restore the dependencies used by this slice according to the [TRD baseline](TRD.md#11-runtime-and-dependency-baseline). The Dockerfiles and Compose file pin upstream image index digests. The worker's uv version pins the managed Python download, and its Dockerfile verifies the renv bootstrap archive. The fixture workflow records observed runtime versions, image IDs and lockfile hashes.
+The first build restores `web/package-lock.json` with npm, `server/uv.lock` with uv, and `server/renv.lock` with renv. Pin and restore the dependencies used by this slice according to the [TRD baseline](TRD.md#11-runtime-and-dependency-baseline). The Dockerfiles and Compose file pin upstream image index digests. The worker's uv version pins the managed Python download, and its build verifies the renv and jsonlite source archives. The fixture workflow records observed runtime versions, image IDs and lockfile hashes.
 
 | Service | Entry point and evidence |
 | --- | --- |

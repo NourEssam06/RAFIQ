@@ -55,31 +55,42 @@ class FixtureIntegrationTests(unittest.TestCase):
             connection.execute(text(f"INSERT INTO {FIXTURES} (owner_id) VALUES ('driver-b')"))
             fixture_id = connection.execute(text(f"SELECT id FROM {FIXTURES}")).scalar_one()
 
-        with self.worker.connect() as connection:
+        with self.worker.begin() as connection:
             first = connection.execute(CLAIM, {"lease_seconds": 0}).mappings().one()
             self.assertEqual(first.id, fixture_id)
-            result = calculate(first.samples)
-            self.assertEqual(result.model_dump(), {
-                "version": 1, "method": "synthetic-mean-v1", "count": 3, "mean": 4,
-            })
-            publication = {"id": fixture_id, "status": "completed", "result": result.model_dump_json()}
+
+        result = calculate(first.samples)
+        self.assertEqual(result.model_dump(), {
+            "version": 1, "method": "synthetic-mean-v1", "count": 3, "mean": 4,
+        })
+        publication = {"id": fixture_id, "status": "completed", "result": result.model_dump_json()}
+        with self.worker.begin() as connection:
             self.assertEqual(connection.execute(
                 PUBLISH, {**publication, "generation": first.generation}
             ).rowcount, 0)
 
+        with self.worker.begin() as connection:
             second = connection.execute(CLAIM, {"lease_seconds": 30}).mappings().one()
             self.assertEqual(second.id, fixture_id)
             self.assertEqual(second.generation, first.generation + 1)
+
+            with self.worker.begin() as competing_worker:
+                self.assertIsNone(competing_worker.execute(
+                    CLAIM, {"lease_seconds": 30}
+                ).mappings().one_or_none())
+
+        with self.worker.begin() as connection:
             self.assertEqual(connection.execute(
                 PUBLISH, {**publication, "generation": first.generation}
             ).rowcount, 0)
             self.assertEqual(connection.execute(
                 PUBLISH, {**publication, "generation": second.generation}
             ).rowcount, 1)
+
+        with self.worker.begin() as connection:
             self.assertEqual(connection.execute(
                 PUBLISH, {**publication, "generation": second.generation}
             ).rowcount, 0)
-            connection.commit()
 
         with self.api.begin() as connection:
             connection.execute(text("SELECT set_config('rafiq.fixture_owner', 'driver-b', true)"))
