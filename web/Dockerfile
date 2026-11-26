@@ -4,6 +4,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json ./
 RUN npm install --global npm@11.19.1 && npm ci
 COPY app ./app
+COPY public ./public
 COPY tests ./tests
 COPY playwright.config.ts tsconfig.json ./
 RUN npm run build && npm run typecheck
