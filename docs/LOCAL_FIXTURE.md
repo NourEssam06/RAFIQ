@@ -46,7 +46,7 @@ Issue #7 verifies the renderer baseline for FND-02 and modules M06 and M10. The 
 | Method | `synthetic-mean-v1` |
 | Result version | 1 |
 
-To repeat the smoke for a validation candidate, use its exact Git revision with a disposable Compose project on Linux x86-64. Start the stack as described above, submit Driver A's fixture using the browser, and wait for `completed`. Install LibreOffice Writer, Poppler utilities and DejaVu Sans on the inspection host, then run from the repository root with Bash. Use a fresh output directory for each run.
+To repeat the smoke for a validation candidate, use its exact Git revision with a disposable Compose project on Linux x86-64. Start the stack as described above, submit Driver A's fixture using the browser, and wait for `completed`. Install LibreOffice Writer, Poppler utilities, Fontconfig and DejaVu Sans on the inspection host, then run from the repository root with Bash. Use a fresh output directory for each run.
 
 ```bash
 docker compose --env-file .env.fixture.example --profile render build --no-cache renderer
@@ -55,7 +55,7 @@ bash ops/fixture-render/smoke.sh logs/render-fixture
 
 The renderer target in [server/Dockerfile](../server/Dockerfile) pins the Python 3.14.10 Bookworm image by digest, the signed Debian and Debian Security archives to `20261120T000000Z`, and the Pango, HarfBuzz, Fontconfig and DejaVu package versions. [server/uv.lock](../server/uv.lock) locks WeasyPrint 70.0, python-docx 1.2.0 and their Python dependencies. The build uses the optional `render` dependency group. The one-shot renderer consumes the synthetic API response through stdin and writes to the mounted output directory with networking disabled.
 
-The smoke checks the text and embedded fonts in the PDF and in a LibreOffice render of the DOCX. Open `pdf-page.png` and `word-page.png` to check alignment, legibility and matching numbers and units. The GitHub workflow publishes both source documents, both previews, `comparison.txt` and `dependencies.txt` as `synthetic-render-fixture`. The dependency record includes the tested revision, Linux image ID and architecture, lock and output hashes, Python and native inventories, font hashes and inspection tool versions.
+The smoke checks the text and embedded fonts in the PDF and in a LibreOffice render of the DOCX. Open `pdf-page.png` and `word-page.png` to check alignment, legibility and matching numbers and units. The GitHub workflow publishes both source documents, both previews, `comparison.txt` and `dependencies.txt` as `synthetic-render-fixture`. The dependency record includes the tested revision, Linux image ID and architecture, lock and output hashes, and the renderer's Python and native package inventories. It also records inspection tool versions and the hashes of the regular and bold fonts selected in both environments.
 
 ### Browser, database and recovery checks
 

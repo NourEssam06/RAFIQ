@@ -61,19 +61,39 @@ check_page word "$preview/synthetic-mean.pdf"
 } | tee "$output/comparison.txt"
 
 {
+  echo 'Candidate and renderer image'
   git rev-parse HEAD
   docker image inspect --format '{{.Os}}/{{.Architecture}} {{.Id}}' rafiq-fixture-renderer:local
   sha256sum server/Dockerfile server/uv.lock
+  echo
+  echo 'Inspection host'
+  uname -sm
   libreoffice --version
   pdftoppm -v 2>&1
+  sha256sum "$(fc-match -f '%{file}' 'DejaVu Sans:style=Book')" \
+    "$(fc-match -f '%{file}' 'DejaVu Sans:style=Bold')"
+  if command -v dpkg-query >/dev/null; then
+    dpkg-query -W -f '${db:Status-Abbrev} ${binary:Package} ${Version}\n' \
+      libreoffice-writer 'libreoffice-core*' poppler-utils fontconfig fonts-dejavu-core \
+      | awk '$1 == "ii" { print $2, $3 }'
+  fi
+  echo
+  echo 'Renderer image packages and fonts'
   "${renderer[@]}" --entrypoint sh renderer -ec '
     cat /etc/os-release
     python --version
     uv --version
-    uv pip freeze
+    python - <<"PY"
+from importlib.metadata import distributions
+
+for package in sorted(distributions(), key=lambda item: item.name.lower()):
+    print(f"{package.name}=={package.version}")
+PY
     dpkg-query -W
     sha256sum /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf \
       /usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf
   '
+  echo
+  echo 'Output hashes'
   (cd "$output" && sha256sum synthetic-mean.pdf synthetic-mean.docx)
 } > "$output/dependencies.txt"

@@ -87,7 +87,7 @@ jobs:
       - name: Render and compare PDF and Word from the persisted fixture
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libreoffice-writer poppler-utils fonts-dejavu-core
+          sudo apt-get install -y --no-install-recommends libreoffice-writer poppler-utils fontconfig fonts-dejavu-core
           docker compose --profile render build renderer
           bash ops/fixture-render/smoke.sh
       - name: Upload synthetic render evidence
