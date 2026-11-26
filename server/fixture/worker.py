@@ -7,13 +7,12 @@ import time
 from collections.abc import Callable
 from pathlib import Path
 from random import uniform
-from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from fixture.database import engine_for, schema_ready
+from fixture.result import SYNTHETIC_SAMPLES, MeanResult
 
 HEARTBEAT = Path("/tmp/rafiq-fixture-worker.heartbeat")
 R_SCRIPT = Path(__file__).resolve().parents[1] / "r" / "synthetic_mean.R"
@@ -43,15 +42,6 @@ PUBLISH = text("""
 """)
 
 
-class MeanResult(BaseModel):
-    model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
-
-    version: Literal[1]
-    method: Literal["synthetic-mean-v1"]
-    count: int = Field(gt=0)
-    mean: float
-
-
 def calculate(samples: list[int]) -> MeanResult:
     process = subprocess.run(
         ["Rscript", "--vanilla", str(R_SCRIPT)],
@@ -62,8 +52,9 @@ def calculate(samples: list[int]) -> MeanResult:
         check=True,
     )
     result = MeanResult.model_validate_json(process.stdout)
-    if samples != [2, 4, 6] or result.count != 3 or abs(result.mean - 4) > 0.000001:
+    if tuple(samples) != SYNTHETIC_SAMPLES:
         raise ValueError("R result is incompatible with the fixture input")
+    result.check_fixture_values()
     return result
 
 

@@ -68,6 +68,15 @@ services:
       timeout: 3s
       retries: 15
 
+  renderer:
+    profiles: [render]
+    build: { context: ./server, target: renderer }
+    image: rafiq-fixture-renderer:local
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
   web:
     build: ./web
     ports: ["127.0.0.1:3000:3000"]
