@@ -1,19 +1,19 @@
 FROM ghcr.io/astral-sh/uv:0.13.9@sha256:d3b601f0c7b118bc1753febf7c41cc80981df678445e0254284eecf84db79a7d AS uv
 
-FROM python:3.14.10-slim-trixie@sha256:22eafb370920ad8b429e0aec3fff433e0669968519f5d60469d83729c138b28b AS api
+# The Debian API image has high-severity OS findings without fixed versions.
+FROM ubuntu:26.04@sha256:d66b366dac61b575bee2aef07e9c26e8070096fbe84a3d4d3eb0da069b5d76db AS api
 COPY --from=uv /uv /usr/local/bin/uv
 WORKDIR /app
-ENV PATH="/app/.venv/bin:${PATH}" UV_PYTHON_DOWNLOADS=never PYTHONDONTWRITEBYTECODE=1
-# DSA-6657-1 was published after this upstream image digest.
-RUN apt-get -o Acquire::Retries=3 update \
-    && apt-get -o Acquire::Retries=3 install -y --no-install-recommends --only-upgrade \
-      libzstd1=1.5.7+dfsg-1+deb13u1 \
+ENV PATH="/app/.venv/bin:${PATH}" UV_PYTHON_INSTALL_DIR=/opt/uv-python \
+    UV_PYTHON_PREFERENCE=only-managed PYTHONDONTWRITEBYTECODE=1
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 COPY pyproject.toml uv.lock ./
-# uv restores the locked environment without the base interpreter's packaging tools.
 RUN uv sync --locked --no-dev \
-    && uv pip uninstall --system --python /usr/local/bin/python pip setuptools \
-    && find /usr/local/lib/python3.14/ensurepip -type f -path '*/_bundled/*.whl' -delete
+    && managed_python="$(uv python find --system)" \
+    && uv pip uninstall --system --break-system-packages --python "$managed_python" pip setuptools \
+    && find /opt/uv-python -type f -path '*/ensurepip/_bundled/*.whl' -delete
 COPY alembic.ini ./
 COPY migrations ./migrations
 COPY fixture ./fixture
