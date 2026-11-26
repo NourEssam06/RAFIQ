@@ -4,8 +4,9 @@ from uuid import UUID
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import OperationalError, SQLAlchemyError, TimeoutError
 
 from fixture.database import engine_for, schema_ready
 
@@ -38,7 +39,19 @@ def fixture_owner(authorization: Annotated[str | None, Header()] = None) -> str:
 Owner = Annotated[str, Depends(fixture_owner)]
 
 
+@app.exception_handler(OperationalError)
+@app.exception_handler(TimeoutError)
+async def database_unavailable(_request, _error):
+    return JSONResponse(status_code=503, content={"detail": "Fixture database unavailable"})
+
+
 def use_owner(connection, owner: str):
+    try:
+        compatible = schema_ready(connection, "api")
+    except SQLAlchemyError:
+        compatible = False
+    if not compatible:
+        raise HTTPException(503, "Fixture database unavailable")
     connection.execute(
         text("SELECT set_config('rafiq.fixture_owner', :owner, true)"), {"owner": owner}
     )

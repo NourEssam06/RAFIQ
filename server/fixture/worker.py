@@ -5,6 +5,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from random import uniform
 from threading import Event
 from typing import Literal
 
@@ -18,10 +19,14 @@ HEARTBEAT = Path("/tmp/rafiq-fixture-worker.heartbeat")
 R_SCRIPT = Path(__file__).resolve().parents[1] / "r" / "synthetic_mean.R"
 LEASE_SECONDS = 30
 R_TIMEOUT_SECONDS = 10
+HEARTBEAT_MAX_AGE_SECONDS = 20
+IDLE_POLL_SECONDS = 0.5
+MAX_DB_BACKOFF_SECONDS = 4
 CLAIM = text("""
     WITH candidate AS (
         SELECT id FROM rafiq_fixture.fixtures
-        WHERE status = 'queued' OR (status = 'running' AND lease_until <= clock_timestamp())
+        WHERE status IN ('queued', 'running')
+            AND (status = 'queued' OR lease_until <= clock_timestamp())
         ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED
     )
     UPDATE rafiq_fixture.fixtures AS fixture
@@ -62,29 +67,22 @@ def calculate(samples: list[int]) -> MeanResult:
     return result
 
 
-def run_worker():
-    stopping = Event()
-    signal.signal(signal.SIGTERM, lambda *_: stopping.set())
-    signal.signal(signal.SIGINT, lambda *_: stopping.set())
-    HEARTBEAT.unlink(missing_ok=True)
-    engine = engine_for("worker")
-    subprocess.run(
-        [
-            "Rscript", "--vanilla", "-e",
-            'stopifnot(getRversion() == "4.6.2", packageVersion("jsonlite") == "2.0.0")',
-        ],
-        check=True,
-        timeout=R_TIMEOUT_SECONDS,
-    )
+def claim_loop(engine, stopping: Event):
+    backoff = 0
     while not stopping.is_set():
         try:
             with engine.begin() as connection:
                 if not schema_ready(connection, "worker"):
-                    raise RuntimeError("Worker requires the fixture schema and role")
+                    raise FixtureSchemaUnavailable
+                if stopping.is_set():
+                    return
                 job = connection.execute(CLAIM, {"lease_seconds": LEASE_SECONDS}).mappings().first()
+            if backoff:
+                logging.info("Synthetic worker claim loop recovered")
+                backoff = 0
             HEARTBEAT.touch()
             if job is None:
-                stopping.wait(0.5)
+                stopping.wait(IDLE_POLL_SECONDS)
                 continue
 
             try:
@@ -103,15 +101,49 @@ def run_worker():
                         "result": result,
                     },
                 )
-            HEARTBEAT.touch()
-        except SQLAlchemyError:
+        except (SQLAlchemyError, FixtureSchemaUnavailable):
             HEARTBEAT.unlink(missing_ok=True)
-            logging.warning("Synthetic worker database operation unavailable")
-            stopping.wait(1)
+            if not backoff:
+                logging.warning("Synthetic worker database or schema unavailable")
+            backoff = min(MAX_DB_BACKOFF_SECONDS, max(1, backoff * 2))
+            stopping.wait(uniform(backoff / 2, backoff))
+
+
+class FixtureSchemaUnavailable(Exception):
+    pass
+
+
+def run_worker():
+    stopping = Event()
+    signal.signal(signal.SIGTERM, lambda *_: stopping.set())
+    signal.signal(signal.SIGINT, lambda *_: stopping.set())
     HEARTBEAT.unlink(missing_ok=True)
+    engine = engine_for("worker")
+    logging.basicConfig(level=logging.INFO)
+    try:
+        subprocess.run(
+            [
+                "Rscript", "--vanilla", "-e",
+                'stopifnot(getRversion() == "4.6.2", packageVersion("jsonlite") == "2.0.0")',
+            ],
+            check=True,
+            timeout=R_TIMEOUT_SECONDS,
+        )
+        claim_loop(engine, stopping)
+    finally:
+        HEARTBEAT.unlink(missing_ok=True)
+        engine.dispose()
+
+
+def heartbeat_is_fresh() -> bool:
+    try:
+        age = time.time() - HEARTBEAT.stat().st_mtime
+    except FileNotFoundError:
+        return False
+    return 0 <= age < HEARTBEAT_MAX_AGE_SECONDS
 
 
 if __name__ == "__main__":
     if sys.argv[1:] == ["--check-health"]:
-        sys.exit(0 if HEARTBEAT.exists() and time.time() - HEARTBEAT.stat().st_mtime < 20 else 1)
+        sys.exit(0 if heartbeat_is_fresh() else 1)
     run_worker()

@@ -53,3 +53,38 @@ docker compose --env-file .env.fixture.example run --rm --no-deps -e RAFIQ_API_D
 ```
 
 The fixture uses no provider credentials. Its public synthetic defaults require the explicit `local-fixture` mode and a disposable database. Real secrets and local logs belong in ignored files. Check with `git check-ignore .env server/.env.local web/debug.log logs/fixture.txt`. The committed `.env.fixture.example` contains public test values.
+
+## Recovery drill
+
+The drill implements the recovery portion of FND-02 for M03, M06 and M10. It prepares NFR-03 and NFR-05 evidence using the PostgreSQL 17.12 Compose configuration, synthetic identities and the fixture page. It uses the same one-shot migration service as startup. [Issue #6](https://github.com/alisameh05/RAFIQ/issues/6) · [Docker implementation checklist](DOCKER.md#19-implementation-checklist) · [API verification matrix](API.md#15-api-testing-and-contract-validation)
+
+Build the images and install the browser tooling as described above. Stop the original Compose stack to free ports 3000 and 8000. The drill creates and removes its own uniquely named Compose project and synthetic volumes. If you built with a custom Compose project name, set `RAFIQ_RECOVERY_IMAGE_PROJECT` to that name so the drill can find its web and worker images.
+
+```powershell
+docker compose --env-file .env.fixture.example down
+Push-Location web
+$env:RAFIQ_RECOVERY_DRILL = '1'
+npm run test:e2e -- recovery.spec.ts
+Remove-Item Env:RAFIQ_RECOVERY_DRILL
+Pop-Location
+```
+
+The workflow step **Verify populated upgrade, probes, drain, reclaim and browser recovery** records these observations under the tested revision.
+
+| Scenario | Expected evidence |
+| --- | --- |
+| Fresh and populated migration | Create head on an empty volume. On a separate volume, seed one queued and one completed job under revision `0001_local_fixture`, then run `migrate` to `0002_fixture_claim_index` and recreate the stack. Compare schema dumps, including grants and RLS, and verify each row, its job state and result, the owner reads, and the 401 and 404 denials. |
+| API and worker signals | With the prior revision and again with PostgreSQL stopped, API liveness stays at 200 while readiness returns 503. Valid fixture requests return a generic 503. The worker stays running with an unhealthy heartbeat. Restart PostgreSQL and observe readiness and heartbeat recover on the same processes. An absent or stale heartbeat exits 1. |
+| Graceful drain | Hold the first job at the real R calculation, submit a second job, signal `SIGTERM` and release R. The worker finishes one job, leaves the second queued and exits 0. |
+| Forced interruption and browser recovery | Kill a worker after generation 1 has committed its claim. Wait for the PostgreSQL lease to expire naturally. A replacement claims generation 2 and the old generation's publication updates zero rows. Chromium reload shows the same UUID and exactly one validated R result. Retry the same browser read after database recovery. |
+
+### Local probe and recovery defaults
+
+**Platform approval is pending.** Review these defaults with the drill evidence. Record the approver, date and evidence link on issue #6 before marking the approval criterion complete. No production alert or release threshold is set by this drill.
+
+| Setting | Local behavior |
+| --- | --- |
+| Liveness and readiness | Liveness checks HTTP process responsiveness without touching PostgreSQL. Readiness requires the API role and current Alembic revision. The Compose readiness check runs every 2 seconds with a 2-second HTTP deadline and a 3-second command timeout. Compose uses 15 consecutive failures for the API and worker container health status. The drill measures the underlying signals directly. |
+| PostgreSQL reconnection | Runtime and one-shot migration connections use a 3-second connection timeout, a 3-second pool checkout timeout and a 5-second per-statement timeout. TCP uses a 5-second user timeout and keepalives after 2 seconds of idle time with 1-second intervals and 3 probes. API operations return to the caller after an error. The worker retries DB and schema errors with jittered waits of 0.5–1, 1–2 and then 2–4 seconds until a claim-loop transaction succeeds. |
+| Worker heartbeat | Check freshness locally every 2 seconds. Missing or age 20 seconds or greater is unhealthy. Only a successful claim-loop transaction refreshes the file. Startup, detected DB/schema failure and graceful stop clear it. |
+| Drain and lease | An idle worker checks for jobs every 0.5 seconds. On terminate, it stops starting claims and can finish an in-flight claim. R has a 10-second deadline, Compose allows 20 seconds before forced stop, and PostgreSQL owns the 30-second lease clock. A lost or expired generation cannot publish. |

@@ -8,6 +8,7 @@ on:
       - .gitignore
       - compose.yaml
       - ops/postgres/**
+      - ops/fixture-recovery/**
       - server/**
       - web/**
 
@@ -82,6 +83,14 @@ jobs:
           curl --fail --silent --show-error \
             -H 'Authorization: Bearer local-driver-a' http://127.0.0.1:8000/api/v1/local-fixtures/current \
             | jq -e '.status == "completed" and .result == {"version":1,"method":"synthetic-mean-v1","count":3,"mean":4}'
+      - name: Stop the smoke stack before the recovery drill
+        run: docker compose down
+      - name: Verify populated upgrade, probes, drain, reclaim and browser recovery
+        working-directory: web
+        env:
+          RAFIQ_RECOVERY_DRILL: '1'
+          RAFIQ_RECOVERY_IMAGE_PROJECT: ${{ env.COMPOSE_PROJECT_NAME }}
+        run: npm run test:e2e -- recovery.spec.ts
       - name: Show fixture logs on failure
         if: failure()
         run: docker compose logs --no-color --tail 100
