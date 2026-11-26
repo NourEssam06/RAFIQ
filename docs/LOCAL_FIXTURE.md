@@ -64,6 +64,7 @@ The [local fixture job in RAFIQ CI](https://github.com/alisameh05/RAFIQ/actions/
 ```powershell
 Push-Location web
 npm ci
+npm run lint
 npm run typecheck
 npm exec playwright install chromium
 npm run test:e2e
@@ -74,7 +75,7 @@ Optionally set `RAFIQ_BROWSER_CHANNEL=chrome` in your shell before the test to u
 
 ```powershell
 docker compose --env-file .env.fixture.example stop worker
-docker compose --env-file .env.fixture.example run --rm --no-deps -e RAFIQ_API_DATABASE_URL=postgresql+psycopg://rafiq_api:local-api-only@db:5432/rafiq worker python -m unittest discover -s tests -v
+docker compose --env-file .env.fixture.example run --build --rm --no-deps worker-test
 ```
 
 The fixture uses no provider credentials. Its public synthetic defaults require the explicit `local-fixture` mode and a disposable database. Real secrets and local logs belong in ignored files. Check with `git check-ignore .env server/.env.local web/debug.log logs/fixture.txt`. The committed `.env.fixture.example` contains public test values.

@@ -33,7 +33,7 @@ COPY fixture ./fixture
 USER 10001:10001
 ENTRYPOINT ["python", "-m", "fixture.render"]
 
-FROM rocker/r-ver:4.6.2@sha256:b344cf44c8cfb787d9e091cb88a9694fbc771e7600edaa7b545030babfc05bf3 AS worker
+FROM rocker/r-ver:4.6.2@sha256:b344cf44c8cfb787d9e091cb88a9694fbc771e7600edaa7b545030babfc05bf3 AS worker-base
 COPY --from=uv /uv /usr/local/bin/uv
 WORKDIR /app
 ENV PATH="/app/.venv/bin:${PATH}" UV_PYTHON_INSTALL_DIR=/opt/uv-python \
@@ -50,6 +50,12 @@ RUN apt-get update \
     && Rscript --vanilla r/restore.R
 COPY fixture ./fixture
 COPY r ./r
+
+FROM worker-base AS worker-test
+RUN uv sync --locked
 COPY tests ./tests
+USER 10001:10001
+
+FROM worker-base AS worker
 USER 10001:10001
 CMD ["python", "-m", "fixture.worker"]
