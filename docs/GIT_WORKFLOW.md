@@ -198,64 +198,25 @@ flowchart TD
 
 | File | When to adopt | Events and execution |
 | --- | --- | --- |
-| `.github/workflows/ci.yml` | Bootstrap now. Replace with the application form after both scaffolds land, or add each ready job and its gate assertion in the same PR. | PRs targeting `master` and pushes to `master`. Uses read-only checkout and a stable required check. No provider environment or secrets. |
+| `.github/workflows/ci.yml` | Bootstrap with source and the executable local fixture suite. Add each new job and its gate assertion together. | PRs targeting `master` and pushes to `master`. Uses read-only checkout and a stable required check. No provider environment or secrets. |
 | `.github/workflows/deploy-production.yml` | After the attended public release path is rehearsed and the prerequisites below are complete. | Manual dispatch from `master`. Preflight → protected `production` job → orchestrated migration, release, smoke and evidence. Failure stops promotion or starts qualified recovery according to deployment state. |
 
 Keep preview and demo deploys operator-driven initially. GitHub's built-in Dependabot and secret scanning cover the initial scheduled security needs. A tag records a successful release. It does not deploy. Add workflow linting with a pinned tool when workflow maintenance warrants it.
 
 ### Bootstrap `ci.yml`
 
-The bootstrap uses the tracked repository and needs no application scaffolding. On a PR, normal checkout tests the synthetic merge commit and checks its diff against its first parent. On a push, it checks the entire pushed change against GitHub's previous tip. The fallback handles a zero or unavailable previous tip. Opening or updating a PR starts a fresh run. The newest run for a PR or branch supersedes its older run.
+[RAFIQ CI](../.github/workflows/ci.yml) runs for PRs into `master` and pushes to `master`. On a PR, checkout tests GitHub's synthetic merge commit and the source job checks its diff against the first parent. On a push it checks the full change since the previous tip and uses the empty tree when that tip is unavailable. Source also checks that the core documents are present and nonempty.
 
-```yaml
-name: RAFIQ CI
-'on':
-  pull_request:
-    branches: [master]
-  push:
-    branches: [master]
-permissions:
-  contents: read
-concurrency:
-  group: rafiq-ci-${{ github.ref }}
-  cancel-in-progress: true
-jobs:
-  source:
-    name: RAFIQ source
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Check the tested diff and core documents
-        env:
-          BEFORE: ${{ github.event.before }}
-        run: |
-          if [[ "$GITHUB_EVENT_NAME" == pull_request ]]; then
-            base=$(git rev-parse HEAD^1)
-          elif [[ -n "$BEFORE" ]] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
-            base=$BEFORE
-          else
-            base=$(git hash-object -w -t tree /dev/null)
-          fi
-          git diff --check "$base" HEAD --
-          for doc in PRD TRD ARCHITECTURE API EXPERIENCE DESIGN; do
-            test -s "docs/$doc.md"
-          done
-  gate:
-    name: RAFIQ CI gate
-    if: ${{ always() }}
-    needs: [source]
-    permissions: {}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - env:
-          SOURCE: ${{ needs.source.result }}
-        run: test "$SOURCE" = success
-```
+The workflow calls the [local fixture suite](../.github/workflows/local-fixture.yml) on both events. It uses `.env.fixture.example` for disposable browser, API, database, worker, R, recovery and render checks. Source and fixture have read-only repository contents access and checkout clears credentials. The gate runs without repository permissions and requires both jobs to succeed. It reports both results even if a prerequisite fails or is skipped. Add the expected result for any new prerequisite in the same PR that adds the job.
+
+#### Bootstrap and enforcement evidence
+
+1. Request an independent review of the bootstrap PR. Record its head SHA, the tested merge SHA from the source log, the reviewer's approval and the check run. Squash merge the exact reviewed candidate and record the resulting `master` SHA and gate run before requiring the check.
+2. After the PR and push checks pass, the authorized repository operator adopts the settings in [Merge strategy and branch protection](#8-merge-strategy-and-branch-protection). Require the exact `RAFIQ CI gate` check from GitHub Actions and enable strict up-to-date checks. Record the active ruleset and squash settings.
+3. Open two disposable PRs from the protected baseline and leave them unmerged. In one, add trailing whitespace to a changed line to fail Source. In the other, set the Source job to `if: ${{ false }}`. Record the prerequisite and gate conclusions and the merge block reported by GitHub for each. Close both proof PRs after recording the results.
+4. For a fork PR, record the candidate SHA and workflow run. Inspect the job setup for read-only token permissions, check that the fixture used `.env.fixture.example` and verify that the workflow grants no deployment permissions and uses no hosted credentials. Record any GitHub approval needed to start the run.
+
+Link the evidence in [issue #10](https://github.com/alisameh05/RAFIQ/issues/10). Use the [implementation guide's evidence fields](IMPLEMENTATION_GUIDE.md#5-traceability-and-release-evidence).
 
 ### Application `ci.yml`
 
