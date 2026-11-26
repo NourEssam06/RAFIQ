@@ -1,0 +1,72 @@
+name: rafiq-fixture
+
+services:
+  db:
+    image: postgres:17.12-bookworm@sha256:1eff563f6c868b9b433566e9f3cf6e5c79fbd3b95bf70ec7277d376cdbfc50d7
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: rafiq
+      POSTGRES_PASSWORD: ${RAFIQ_DATABASE_BOOTSTRAP_PASSWORD:?use .env.fixture.example}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./ops/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-d", "rafiq", "-U", "postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build: { context: ./server, target: api }
+    image: rafiq-fixture-api:local
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      RAFIQ_MODE: local-fixture
+      RAFIQ_MIGRATE_DATABASE_URL: ${RAFIQ_MIGRATE_DATABASE_URL:?use .env.fixture.example}
+    depends_on:
+      db: { condition: service_healthy }
+
+  api:
+    image: rafiq-fixture-api:local
+    pull_policy: never
+    environment:
+      RAFIQ_MODE: local-fixture
+      RAFIQ_API_DATABASE_URL: ${RAFIQ_API_DATABASE_URL:?use .env.fixture.example}
+    ports: ["127.0.0.1:8000:8000"]
+    init: true
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/internal/readyz', timeout=2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  worker:
+    build: { context: ./server, target: worker }
+    init: true
+    environment:
+      RAFIQ_MODE: local-fixture
+      RAFIQ_WORKER_DATABASE_URL: ${RAFIQ_WORKER_DATABASE_URL:?use .env.fixture.example}
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "python", "-m", "fixture.worker", "--check-health"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  web:
+    build: ./web
+    ports: ["127.0.0.1:3000:3000"]
+    init: true
+    depends_on:
+      api: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/healthz').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  pgdata:
