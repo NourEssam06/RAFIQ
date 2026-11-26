@@ -85,7 +85,7 @@ Each provider keeps its own status. A verified development configuration does no
 
 ## 5. Study and device lines
 
-These lines carry the approved hardware, study access and participant reservations that FND-01 opens on Day 1. They are separate from hosting and identity because a missing device or consent reservation blocks a different evidence window.
+These lines track the hardware, study access and participant reservations that FND-01 opens on Day 1. The [FND-04 study qualification plan](PHASE_0_STUDY_QUALIFICATION.md) provides the protocol, sign-off worksheets and confirmation records for issue #9.
 
 | ID | Dependency · capability and gate | Account owner and access | Lead time | Supported workload | Quotas, zero-cost and hard limit | Exhaustion behavior | Alternatives | Status · next owner · check date |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
