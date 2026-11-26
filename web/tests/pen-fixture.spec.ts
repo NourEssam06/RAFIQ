@@ -7,7 +7,16 @@ const preview = pathToFileURL(resolve('public/pen-fixture/index.html')).href;
 test('keyboard navigation reaches the filters and returns from the dialog', async ({ page }) => {
   await page.goto(preview);
   await page.keyboard.press('Tab');
-  await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused();
+  const skip = page.getByRole('link', { name: 'Skip to content' });
+  await expect(skip).toBeFocused();
+  const previewNav = page.getByRole('navigation', { name: 'Preview workspaces' });
+  await page.keyboard.press('Tab');
+  await expect(previewNav.getByRole('link', { name: 'Driver' })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(previewNav.getByRole('link', { name: 'Administration' })).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Shift+Tab');
+  await expect(skip).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('main')).toBeFocused();
   const driverNav = page.getByRole('navigation', { name: 'Driver workspace' });
@@ -37,6 +46,23 @@ test('keyboard navigation reaches the filters and returns from the dialog', asyn
   await page.keyboard.press('Enter');
   await expect(dialog).toBeHidden();
   await expect(opener).toBeFocused();
+
+  await page.keyboard.press('Tab');
+  await expect(page.getByText('Clip availability', { exact: true })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.getByText('The example clip expired. The incident record is still available.')).toBeVisible();
+  await page.keyboard.press('Tab');
+  const chart = page.getByRole('table', { name: 'Recorded warning counts by behavior' });
+  await expect(chart).toBeFocused();
+  await expect(chart).toHaveCSS('outline-width', '3px');
+
+  const adminNav = page.getByRole('navigation', { name: 'Administration workspace' });
+  const healthLink = adminNav.getByRole('link', { name: 'Service Health' });
+  await page.keyboard.press('Tab');
+  await expect(healthLink).toBeFocused();
+  await expect(healthLink).toHaveCSS('outline-width', '3px');
+  await page.keyboard.press('Tab');
+  await expect(adminNav.getByRole('link', { name: 'Release Readiness' })).toBeFocused();
 });
 
 test('a refresh exposes loading and completion without moving focus', async ({ page }) => {
@@ -44,6 +70,9 @@ test('a refresh exposes loading and completion without moving focus', async ({ p
   await page.clock.install();
   await page.clock.pauseAt(new Date(Date.now() + 60_000));
   await page.goto(preview);
+  const chart = page.getByRole('table', { name: 'Recorded warning counts by behavior' });
+  await expect(chart.getByRole('row', { name: 'Drowsiness 3' })).toBeVisible();
+  await expect(chart.getByRole('row', { name: 'Distraction 1' })).toBeVisible();
   await page.getByLabel('Session period').selectOption('month');
   const refresh = page.getByRole('button', { name: 'Refresh summary' });
   await refresh.focus();
@@ -56,7 +85,6 @@ test('a refresh exposes loading and completion without moving focus', async ({ p
   await page.clock.runFor(1_200);
   await expect(status).toHaveText('Session summary ready for the last 30 days.');
   await expect(refresh).toBeFocused();
-  const chart = page.getByRole('table', { name: 'Recorded warning counts by behavior' });
   await expect(chart.getByRole('row', { name: 'Drowsiness 9' })).toBeVisible();
   await expect(chart.getByRole('row', { name: 'Distraction 4' })).toBeVisible();
   await expect(chart.getByRole('progressbar')).toHaveCount(0);
@@ -69,6 +97,8 @@ test('a refresh exposes loading and completion without moving focus', async ({ p
   await expect(clear).toBeFocused();
   await page.clock.runFor(1_200);
   await expect(status).toHaveText('Session summary ready for the last 7 days.');
+  await expect(chart.getByRole('row', { name: 'Drowsiness 3' })).toBeVisible();
+  await expect(chart.getByRole('row', { name: 'Distraction 1' })).toBeVisible();
 });
 
 for (const width of [1440, 640, 390, 320]) {
