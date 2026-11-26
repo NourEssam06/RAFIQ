@@ -22,4 +22,4 @@ This handoff records the checks completed for [issue #3](https://github.com/alis
 - [ ] Record resource limits, cost exposure, exhaustion behavior and fallback. Assign an owner and escalation date to any remaining prerequisite.
 - [ ] Link the privacy-safe access attestation from the designated release operator before merging this PR.
 
-The deployed browser-to-R smoke and callback behavior checks are tracked in [issue #11](https://github.com/alisameh05/RAFIQ/issues/11).
+The deployed browser-to-R smoke and callback behavior checks are tracked in [issue #11](https://github.com/alisameh05/RAFIQ/issues/11). Production qualification, account-level limits and the Day 2 escalation are recorded in the [qualification register](PHASE_0_QUALIFICATION_REGISTER.md) and [Day 2 escalation record](PHASE_0_DAY_2_ESCALATION.md).
