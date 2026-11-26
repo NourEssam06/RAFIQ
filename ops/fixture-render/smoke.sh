@@ -34,15 +34,19 @@ check_page() {
   local format="$1" pdf="$2"
   test "$(pdfinfo "$pdf" | awk '$1 == "Pages:" { print $2 }')" = 1
   pdftotext -layout -nopgbrk "$pdf" - \
-    | awk '{$1 = $1; if (NF) print}' > "$preview/$format.txt"
+    | awk 'NF { $1 = $1; print }' > "$preview/$format.txt"
   diff -u "$preview/expected.txt" "$preview/$format.txt"
   pdffonts "$pdf" > "$preview/$format-fonts.txt"
-  awk 'NR > 2 {
+  if ! awk 'NR > 2 {
     name = tolower($1)
     gsub(/[^a-z]/, "", name)
     if (name !~ /dejavusans/ || $(NF-4) != "yes") exit 1
     if (name ~ /bold/) bold = 1; else regular = 1
-  } END { if (!regular || !bold) exit 1 }' "$preview/$format-fonts.txt"
+  } END { if (!regular || !bold) exit 1 }' "$preview/$format-fonts.txt"; then
+    echo "Expected embedded regular and bold DejaVu Sans in $format" >&2
+    cat "$preview/$format-fonts.txt" >&2
+    return 1
+  fi
   pdftoppm -png -r 144 -singlefile "$pdf" "$output/$format-page"
 }
 
