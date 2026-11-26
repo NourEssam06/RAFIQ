@@ -1,0 +1,8 @@
+.env*
+*.log
+logs
+node_modules
+.next
+next-env.d.ts
+playwright-report
+test-results

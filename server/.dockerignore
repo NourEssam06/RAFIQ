@@ -1,0 +1,8 @@
+.env*
+*.log
+logs
+.venv
+**/__pycache__
+.pytest_cache
+renv/library
+renv/staging

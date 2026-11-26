@@ -2,6 +2,8 @@
 
 ## 1. Overview
 
+The issue #5 [local fixture runbook](LOCAL_FIXTURE.md) documents the executable Compose startup, pinned inputs, health probes and acceptance checks.
+
 RAFIQ runs driver monitoring in Chrome on the laptop and hosts private session history, clips, statistical results, reports, and administration. Docker packages the hosted FastAPI application and its Python/R worker as two coordinated images. A local Compose stack adds Next.js and a PostgreSQL fixture. Hosted Next.js stays on Vercel, and Supabase PostgreSQL remains the authoritative structured store.
 
 **Status as of 21 November 2026.** The checkout at `633f129` contains planning documents and planning tools. There are no application sources, application manifests or lockfiles, migrations, `.env` examples, Docker files, executable deployment scripts, or GitHub Actions workflows. The tracked `.gitignore` is empty. The live GitHub Actions inventory and effective branch-rules endpoint returned no workflows or active rules for `master` at review time. The handbook describes the intended controls. Every file layout, container name, port, health probe, and runtime variable introduced below is a **proposal** unless attributed to an existing contract. The examples require the scaffold in §19.
