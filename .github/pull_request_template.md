@@ -4,7 +4,7 @@ Summarize the change and link the issue or requirement.
 
 ## Verification
 
-- [ ] List the local and CI checks that ran and their results.
+- [ ] List the local and CI checks, commands and results.
 - [ ] Cover applicable failure, authorization, and compatibility cases.
 - [ ] Include affected journeys and accessibility evidence for browser changes.
 

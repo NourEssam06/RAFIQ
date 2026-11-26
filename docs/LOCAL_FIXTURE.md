@@ -59,7 +59,7 @@ The smoke checks the text and embedded fonts in the PDF and in a LibreOffice ren
 
 ### Browser, database and recovery checks
 
-The [local fixture workflow](https://github.com/alisameh05/RAFIQ/actions/workflows/local-fixture.yml) runs the clean build, real Chromium browser smoke, PostgreSQL role checks, R result and lease fencing checks, and a restart using the same volume. Reproduce the browser smoke on a fresh running stack with the pinned Node and npm versions.
+The [local fixture job in RAFIQ CI](https://github.com/alisameh05/RAFIQ/actions/workflows/ci.yml) runs the clean build, real Chromium browser smoke, PostgreSQL role checks, R result and lease fencing checks, and a restart using the same volume. Reproduce the browser smoke on a fresh running stack with the pinned Node and npm versions.
 
 ```powershell
 Push-Location web
