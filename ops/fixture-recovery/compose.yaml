@@ -1,0 +1,11 @@
+services:
+  web:
+    image: ${RAFIQ_RECOVERY_IMAGE_PROJECT:-rafiq-fixture}-web
+    pull_policy: never
+
+  worker:
+    image: ${RAFIQ_RECOVERY_IMAGE_PROJECT:-rafiq-fixture}-worker
+    pull_policy: never
+    volumes:
+      - ./ops/fixture-recovery/hold.R:/app/r/synthetic_mean.R:ro
+      - ./server/r/synthetic_mean.R:/fixture-recovery/synthetic_mean.R:ro
