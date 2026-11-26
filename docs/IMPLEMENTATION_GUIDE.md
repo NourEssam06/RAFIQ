@@ -83,7 +83,7 @@ Use [PRODUCT](PRODUCT.md) and the approved [PRD](PRD.md) for intent, terminology
 
 **Decisions to carry into specs.** Exact runtime and artifact pins, environment names, probes and entry points, compatible PostgreSQL version and extensions, application roles, safe CI and registry access, data/backup ownership, alert thresholds and production provider readiness. Track open items with owner and required evidence. **Exit evidence** — clean install and fixture execution, isolated deployed handoff, current CI proof, design inventory and signed-off test plan. [Git workflow](GIT_WORKFLOW.md#19-recommended-implementation-order) · [API open decisions](API.md#18-open-questions-and-decisions-requiring-approval)
 
-For isolated HTTPS validation, follow the [zero-cost Phase 0 hosting runbook](PHASE_0_HOSTING.md) for the attended API and worker setup, provider quotas and smoke checks.
+For isolated HTTPS validation, follow the [zero-cost Phase 0 hosting runbook](PHASE_0_HOSTING.md) for the attended API and worker setup, provider quotas and smoke checks. Record Day 1 ownership, external requests and account-level limits in the [qualification register](PHASE_0_QUALIFICATION_REGISTER.md), then complete the [Day 2 escalation record](PHASE_0_DAY_2_ESCALATION.md) at the check.
 
 ### Phase 1 — Public entry, driver identity and preferences
 
@@ -272,6 +272,8 @@ Use the [shared RAFIQ canvas](https://app.pen.dev/s/fZ1Fr2k_GIRpAwvABYPvw8LcwmOa
 ## 5. Traceability and release evidence
 
 Use the PRD acceptance text as the test basis. Each evidence record carries requirement or gate, environment, candidate SHA and image digests as applicable, schema and policy versions, dataset or fixture, test setup and timestamp, expected and measured result, status, owner, reviewer and a privacy-safe evidence reference. Keep sensitive controlled material and participant records in the approved study or operations store. Track **Passed**, **Failed** and **Pending** and record what changed when evidence needs repeating. [PRD verification](PRD.md#7-success-and-release-evidence) · [TRD measurable gates](TRD.md#8-measurable-acceptance-and-release-gates) · [API contract and test matrix](API.md#15-api-testing-and-contract-validation)
+
+Phase 0 foundation evidence for FND-01–FND-05 is recorded in the [qualification register](PHASE_0_QUALIFICATION_REGISTER.md), its [Day 2 escalation record](PHASE_0_DAY_2_ESCALATION.md) and the linked Phase 0 records.
 
 ### Functional requirements
 
