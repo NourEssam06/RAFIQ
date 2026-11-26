@@ -4,9 +4,9 @@ import signal
 import subprocess
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
 from random import uniform
-from threading import Event
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -67,14 +67,14 @@ def calculate(samples: list[int]) -> MeanResult:
     return result
 
 
-def claim_loop(engine, stopping: Event):
+def claim_loop(engine, is_stopping: Callable[[], bool]):
     backoff = 0
-    while not stopping.is_set():
+    while not is_stopping():
         try:
             with engine.begin() as connection:
                 if not schema_ready(connection, "worker"):
                     raise FixtureSchemaUnavailable
-                if stopping.is_set():
+                if is_stopping():
                     return
                 job = connection.execute(CLAIM, {"lease_seconds": LEASE_SECONDS}).mappings().first()
             if backoff:
@@ -82,7 +82,8 @@ def claim_loop(engine, stopping: Event):
                 backoff = 0
             HEARTBEAT.touch()
             if job is None:
-                stopping.wait(IDLE_POLL_SECONDS)
+                if not is_stopping():
+                    time.sleep(IDLE_POLL_SECONDS)
                 continue
 
             try:
@@ -106,7 +107,8 @@ def claim_loop(engine, stopping: Event):
             if not backoff:
                 logging.warning("Synthetic worker database or schema unavailable")
             backoff = min(MAX_DB_BACKOFF_SECONDS, max(1, backoff * 2))
-            stopping.wait(uniform(backoff / 2, backoff))
+            if not is_stopping():
+                time.sleep(uniform(backoff / 2, backoff))
 
 
 class FixtureSchemaUnavailable(Exception):
@@ -114,9 +116,14 @@ class FixtureSchemaUnavailable(Exception):
 
 
 def run_worker():
-    stopping = Event()
-    signal.signal(signal.SIGTERM, lambda *_: stopping.set())
-    signal.signal(signal.SIGINT, lambda *_: stopping.set())
+    stopping = False
+
+    def request_stop(*_):
+        nonlocal stopping
+        stopping = True
+
+    signal.signal(signal.SIGTERM, request_stop)
+    signal.signal(signal.SIGINT, request_stop)
     HEARTBEAT.unlink(missing_ok=True)
     engine = engine_for("worker")
     logging.basicConfig(level=logging.INFO)
@@ -129,7 +136,7 @@ def run_worker():
             check=True,
             timeout=R_TIMEOUT_SECONDS,
         )
-        claim_loop(engine, stopping)
+        claim_loop(engine, lambda: stopping)
     finally:
         HEARTBEAT.unlink(missing_ok=True)
         engine.dispose()

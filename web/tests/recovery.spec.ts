@@ -11,6 +11,13 @@ const ownerA = { Authorization: 'Bearer local-driver-a' };
 const ownerB = { Authorization: 'Bearer local-driver-b' };
 const result = { version: 1, method: 'synthetic-mean-v1', count: 3, mean: 4 };
 const display = '3 samples · mean 4 · synthetic-mean-v1';
+type PersistedFixture = {
+  id: string;
+  status: 'queued' | 'running' | 'completed' | 'failed';
+  generation: number;
+  lease_until: string | null;
+  result: typeof result | null;
+};
 const composeArgs = [
   'compose', '--project-name', project, '--env-file', '.env.fixture.example',
   '-f', 'compose.yaml', '-f', 'ops/fixture-recovery/compose.yaml',
@@ -18,7 +25,7 @@ const composeArgs = [
 const psql = ['exec', '-T', 'db', 'psql', '-XAt', '-v', 'ON_ERROR_STOP=1', '-U', 'postgres', '-d', 'rafiq'];
 
 function docker(args: string[], input?: string) {
-  return execFileSync('docker', args, { cwd: root, encoding: 'utf8', input, timeout: 90_000 }).trim();
+  return execFileSync('docker', args, { cwd: root, encoding: 'utf8', input, stdio: 'pipe', timeout: 90_000 }).trim();
 }
 
 function compose(...args: string[]) {
@@ -47,11 +54,12 @@ function inspect(service: string, format: string) {
 }
 
 function schemaDump() {
+  // pg_dump generates a different psql restriction key on each invocation.
   return compose('exec', '-T', 'db', 'pg_dump', '-U', 'postgres', '--schema-only', '--schema=rafiq_fixture', 'rafiq')
-    .replace(/^\\(?:un)?restrict .+\r?\n/gm, '');
+    .split(/\r?\n/).filter((line) => !/^\\(?:un)?restrict /.test(line)).join('\n').trim();
 }
 
-function fixtureRows() {
+function fixtureRows(): PersistedFixture[] {
   return JSON.parse(sql("SELECT json_agg(fixtures ORDER BY owner_id) FROM rafiq_fixture.fixtures"));
 }
 
@@ -101,7 +109,7 @@ test('recover the fixture through upgrade, database outage and worker interrupti
       const seed = readFileSync(resolve(root, 'ops/fixture-recovery/seed.sql'), 'utf8');
       docker([...composeArgs, ...psql], seed);
       const rows = fixtureRows();
-      expect(rows.map((row: { status: string }) => row.status)).toEqual(['queued', 'completed']);
+      expect(rows.map((row) => row.status)).toEqual(['queued', 'completed']);
       compose('up', '-d', '--no-deps', 'api');
       startWorker();
       await expect.poll(() => probe('livez'), { timeout: 15_000 }).toBe(200);
@@ -132,6 +140,9 @@ test('recover the fixture through upgrade, database outage and worker interrupti
     });
 
     await test.step('kill the claimed worker, reclaim after lease expiry, and reject a late publish', async () => {
+      await page.goto('http://127.0.0.1:3000');
+      await expect(page.getByTestId('fixture-id')).toHaveText(prior[0].id);
+      await expect(page.getByText('Waiting for the worker…')).toBeVisible();
       startWorker();
       await waitForR();
       const first = fixtureRows()[0];
@@ -146,7 +157,7 @@ test('recover the fixture through upgrade, database outage and worker interrupti
       const second = fixtureRows()[0];
       expect(second).toMatchObject({ id: first.id, status: 'running', generation: 2, result: null });
       // The claim sets a 30-second lease using the same database clock as the expiry check.
-      expect(Date.parse(second.lease_until) - 30_000).toBeGreaterThanOrEqual(Date.parse(first.lease_until));
+      expect(Date.parse(second.lease_until ?? '') - 30_000).toBeGreaterThanOrEqual(Date.parse(first.lease_until ?? ''));
       const latePublish = compose('exec', '-T', 'worker', 'python', '-c', [
         'from fixture.database import engine_for',
         'from fixture.worker import PUBLISH',
@@ -159,7 +170,6 @@ test('recover the fixture through upgrade, database outage and worker interrupti
       workerCommand('touch /tmp/rafiq-recovery-r-release');
       console.log(`Reclaim: generation ${second.generation} lease expires ${second.lease_until}; generation 1 publish updated ${latePublish} rows.`);
 
-      await page.goto('http://127.0.0.1:3000');
       await expect(page.getByText(display)).toHaveCount(1);
       await page.reload();
       await expect(page.getByText(display)).toHaveCount(1);
@@ -178,6 +188,9 @@ test('recover the fixture through upgrade, database outage and worker interrupti
       await expect.poll(() => probe('readyz'), { timeout: 15_000 }).toBe(503);
       expect(await probe('livez')).toBe(200);
       await expect.poll(heartbeat, { timeout: 15_000 }).toBe('1');
+      const unavailable = await fixture();
+      expect(unavailable.status()).toBe(503);
+      expect(await unavailable.json()).toEqual({ detail: 'Fixture database unavailable' });
       await page.reload();
       await expect(page.getByRole('button', { name: 'Reload fixture' })).toBeVisible();
       bootDb();
