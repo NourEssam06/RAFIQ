@@ -62,7 +62,7 @@ ENV PATH="/app/.venv/bin:${PATH}" UV_PYTHON_INSTALL_DIR=/opt/uv-python \
 COPY pyproject.toml uv.lock ./
 RUN uv sync --locked --no-dev \
     && managed_python="$(uv python find --system)" \
-    && uv pip uninstall --system --python "$managed_python" pip setuptools \
+    && uv pip uninstall --system --break-system-packages --python "$managed_python" pip setuptools \
     && find /opt/uv-python -type f -path '*/ensurepip/_bundled/*.whl' -delete
 COPY fixture ./fixture
 COPY r ./r
