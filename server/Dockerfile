@@ -4,6 +4,11 @@ FROM python:3.14.10-slim-trixie@sha256:22eafb370920ad8b429e0aec3fff433e066996851
 COPY --from=uv /uv /usr/local/bin/uv
 WORKDIR /app
 ENV PATH="/app/.venv/bin:${PATH}" UV_PYTHON_DOWNLOADS=never PYTHONDONTWRITEBYTECODE=1
+# DSA-6657-1 was published after this upstream image digest.
+RUN apt-get -o Acquire::Retries=3 update \
+    && apt-get -o Acquire::Retries=3 install -y --no-install-recommends --only-upgrade \
+      libzstd1=1.5.7+dfsg-1+deb13u1 \
+    && rm -rf /var/lib/apt/lists/*
 COPY pyproject.toml uv.lock ./
 # uv restores the locked environment without the base interpreter's packaging tools.
 RUN uv sync --locked --no-dev \
